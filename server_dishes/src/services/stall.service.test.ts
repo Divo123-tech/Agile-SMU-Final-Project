@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pool } from "../db";
-import { NotFoundError, ServiceError } from "../errors";
+import { NotFoundError } from "../errors";
 import { getStallMenu } from "./stall.service";
 
 vi.mock("../db", () => ({
