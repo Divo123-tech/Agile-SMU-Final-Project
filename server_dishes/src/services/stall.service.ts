@@ -30,7 +30,9 @@ function groupDishesByCategory(rows: DishRow[]): CategoryGroup[] {
       id: String(row.dish_id),
       name: row.dish_name,
       description: row.description ?? "",
-      allergens: row.allergens ? row.allergens.trim().split(",") : [],
+      allergens: row.allergens
+        ? row.allergens.split(",").map((a) => a.trim()).filter(Boolean)
+        : [],
     };
 
     const list = byCategory.get(categoryName);
