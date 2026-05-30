@@ -11,3 +11,10 @@ export class ServiceError extends Error {
     this.name = "ServiceError";
   }
 }
+
+export class ValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ValidationError";
+  }
+}

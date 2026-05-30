@@ -1,22 +1,18 @@
 # server_dishes
 
-A small TypeScript + Node.js (Express) API for stall dishes, backed by PostgreSQL.
+TypeScript + Express API for dish CRUD, backed by PostgreSQL.
 
-## Endpoint
+## Endpoints
 
-`GET /stall/:id` — returns all dishes for the given stall id.
+| Method | Path | Description |
+| ------ | ---- | ----------- |
+| `GET` | `/health` | Liveness check |
+| `POST` | `/dishes` | Create a dish |
+| `GET` | `/dishes/:id` | Get one dish |
+| `PUT` | `/dishes/:id` | Update a dish |
+| `DELETE` | `/dishes/:id` | Delete a dish |
 
-Response shape:
-
-```json
-{
-  "stallId": 1,
-  "count": 3,
-  "dishes": [{ "id": 1, "stall_id": 1, "name": "Chicken Rice", "price": "4.50" }]
-}
-```
-
-There is also `GET /health` for a simple liveness check.
+Stall menus (`GET /stall/:id`) live in **server_stalls** (port 4002).
 
 ## Setup
 
@@ -26,21 +22,10 @@ There is also `GET /health` for a simple liveness check.
    cp .env.example .env
    ```
 
-2. Install dependencies (already done if you cloned with `node_modules`):
+2. Install dependencies:
 
    ```bash
    npm install
-   ```
-
-3. Make sure your PostgreSQL database has a `dishes` table, e.g.:
-
-   ```sql
-   CREATE TABLE dishes (
-     id        SERIAL PRIMARY KEY,
-     stall_id  INTEGER NOT NULL,
-     name      TEXT    NOT NULL,
-     price     NUMERIC(10, 2) NOT NULL
-   );
    ```
 
 ## Scripts
@@ -51,9 +36,4 @@ There is also `GET /health` for a simple liveness check.
 | `npm run build`     | Compile TS to `dist/`                            |
 | `npm start`         | Run the compiled JS (`dist/index.js`)            |
 | `npm run typecheck` | Type-check without emitting                      |
-
-## Example request
-
-```bash
-curl http://localhost:4000/stall/1
-```
+| `npm test`          | Run Vitest                                       |
