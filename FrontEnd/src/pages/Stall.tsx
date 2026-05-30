@@ -1,6 +1,8 @@
 import { useParams } from "react-router-dom"
 import { useState, useMemo, useEffect } from "react"
 import axios from "axios"
+import { getStallMenu } from "@/lib/api"
+import { useAuth } from "@/hooks/useAuth"
 import { StallNotFound } from "@/components/stall-not-found"
 import { MenuHeader } from "@/components/ui/menu-header"
 import { AllergenFilter } from "@/components/ui/allergen-filter"
@@ -14,6 +16,7 @@ interface StallInfo {
   description: string
   image: string
   address?: string
+  owner: number
 }
 
 interface MenuCategory {
@@ -34,11 +37,12 @@ const ALLERGEN_ORDER: AllergenType[] = [
 
 function Stall() {
   const { id } = useParams<{ id: string }>()
+  const { user } = useAuth()
+  const userId = user?.id ?? null
   const [stall, setStall] = useState<StallInfo | null>(null)
   const [categories, setCategories] = useState<MenuCategory[]>([])
   const [loading, setLoading] = useState(() => Boolean(id))
   const [errorStatus, setErrorStatus] = useState<number | null>(null)
-
   const [filteredAllergens, setFilteredAllergens] = useState<AllergenType[]>([])
   const [searchQuery, setSearchQuery] = useState("")
 
@@ -49,10 +53,10 @@ function Stall() {
 
     (async () => {
       try {
-        const res = await axios.get<{ stall: StallInfo; categories: MenuCategory[] }>(`http://localhost:3000/stall/${id}`)
+        const menu = await getStallMenu(Number(id))
         if (cancelled) return
-        setCategories(res.data.categories as MenuCategory[])
-        setStall(res.data.stall as StallInfo)
+        setCategories(menu.categories as MenuCategory[])
+        setStall(menu.stall as StallInfo)
         setErrorStatus(null)
       } catch (err: unknown) {
         if (cancelled) return
@@ -105,6 +109,17 @@ function Stall() {
     )
   }, [categories, filteredAllergens])
 
+  const handleDishDeleted = (dishId: string) => {
+    setCategories((prev) =>
+      prev
+        .map((category) => ({
+          ...category,
+          dishes: category.dishes.filter((dish) => dish.id !== dishId),
+        }))
+        .filter((category) => category.dishes.length > 0),
+    )
+  }
+
   const stallAllergens = useMemo(() => {
     const present = new Set<AllergenType>()
     for (const category of categories) {
@@ -130,6 +145,8 @@ function Stall() {
   if (errorStatus !== null || !stall) {
     return <StallNotFound stallId={id} statusCode={errorStatus ?? 404} />
   }
+
+  const isOwner = userId !== null && stall.owner === userId
 
   return (
     <main className="min-h-screen bg-background pb-8">
@@ -175,8 +192,10 @@ function Stall() {
         {filteredCategories.map((category) => (
           <CategorySection
             key={category.category}
-            category={category.category}
+            name={category.category}
             dishes={category.dishes}
+            isOwner={isOwner}
+            onDishDeleted={handleDishDeleted}
           />
         ))}
       </div>

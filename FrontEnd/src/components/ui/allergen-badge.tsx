@@ -67,7 +67,6 @@ const allergenConfig: Record<AllergenType, { label: string; icon: string; bgClas
 }
 
 export function AllergenBadge({ allergen, className }: AllergenBadgeProps) {
-  console.log("allergen", allergen);
   const config = allergenConfig[allergen]
   
   return (

@@ -1,3 +1,10 @@
+import { useState } from "react"
+import { Link } from "react-router-dom"
+import axios from "axios"
+import { toast } from "sonner"
+import { Pencil, Trash2 } from "lucide-react"
+import { API_BASE_URL } from "@/lib/api"
+import { Button } from "@/components/ui/button"
 import { AllergenBadge, type AllergenType } from "./allergen-badge"
 import { cn } from "@/lib/utils"
 
@@ -14,9 +21,35 @@ export interface Dish {
 interface DishCardProps {
   dish: Dish
   className?: string
+  isOwner?: boolean
+  onDishDeleted?: (dishId: string) => void
 }
 
-export function DishCard({ dish, className }: DishCardProps) {
+export function DishCard({ dish, className, isOwner = false, onDishDeleted }: DishCardProps) {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  const handleDelete = async () => {
+    setIsDeleting(true)
+    try {
+      await axios.delete(`${API_BASE_URL}/dishes/${dish.id}`)
+      toast.success("Dish removed successfully!")
+      onDishDeleted?.(dish.id)
+    } catch (err: unknown) {
+      const message =
+        axios.isAxiosError(err) && err.response?.data
+          ? String(
+              (err.response.data as { message?: string }).message ??
+                `Failed to remove dish (${err.response.status})`,
+            )
+          : "Failed to remove dish. Please try again."
+      toast.error(message)
+    } finally {
+      setIsDeleting(false)
+      setShowDeleteConfirm(false)
+    }
+  }
+
   return (
     <article
       className={cn(
@@ -28,7 +61,6 @@ export function DishCard({ dish, className }: DishCardProps) {
         <h3 className="font-semibold text-foreground text-base leading-tight">
           {dish.name}
         </h3>
-        {/* Special tags */}
         <div className="flex items-center gap-2 shrink-0">
           {dish.isPopular && (
             <span className="text-[10px] font-semibold uppercase tracking-wide text-primary">
@@ -41,7 +73,9 @@ export function DishCard({ dish, className }: DishCardProps) {
             </span>
           )}
           {dish.isSpicy && (
-            <span className="text-[10px]" title="Spicy">🌶️</span>
+            <span className="text-[10px]" title="Spicy">
+              🌶️
+            </span>
           )}
         </div>
       </div>
@@ -50,15 +84,63 @@ export function DishCard({ dish, className }: DishCardProps) {
         {dish.description}
       </p>
 
-      {/* Allergens */}
       {dish.allergens.length > 0 && (
         <div className="mt-3">
           <span className="sr-only">Contains: </span>
           <div className="flex flex-wrap gap-1.5" role="list" aria-label="Allergens">
-            {dish.allergens && dish.allergens.map((allergen) => (
+            {dish.allergens.map((allergen) => (
               <AllergenBadge key={allergen} allergen={allergen} />
             ))}
           </div>
+        </div>
+      )}
+
+      {isOwner && (
+        <div className="mt-3 pt-3 border-t border-border/50">
+          {showDeleteConfirm ? (
+            <div className="space-y-3">
+              <p className="text-sm text-destructive font-medium text-center">
+                Remove this dish?
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={isDeleting}
+                  className="flex-1 h-10 rounded-xl"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="flex-1 h-10 rounded-xl bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                >
+                  {isDeleting ? "Removing…" : "Remove"}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center gap-6">
+              <Link
+                to={`/add-dish?edit=${dish.id}`}
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+              >
+                <Pencil className="w-4 h-4" />
+                Edit Dish
+              </Link>
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(true)}
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-destructive hover:text-destructive/80 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+                Remove Dish
+              </button>
+            </div>
+          )}
         </div>
       )}
     </article>
