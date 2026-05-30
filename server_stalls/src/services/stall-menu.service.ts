@@ -1,5 +1,6 @@
 import { pool } from "../db";
 import { NotFoundError, ServiceError } from "../errors";
+import { STALL_SELECT_COLUMNS, stallUpdatedAtToIso } from "../lib/stall-row";
 import { resolveImageUrlForClient } from "../lib/s3";
 import type { StallRow } from "../types/stall";
 import type {
@@ -21,6 +22,7 @@ async function stallFromRow(row: StallRow | undefined): Promise<StallMenuOut | n
     image: await resolveImageUrlForClient(imageUrl),
     address: row.address?.trim() ?? "",
     owner: row.owner,
+    updatedAt: stallUpdatedAtToIso(row.updated_at),
   };
 }
 
@@ -55,7 +57,7 @@ export async function getStallMenu(stallId: number): Promise<StallMenuResponse> 
   try {
     const [stallRes, dishRes] = await Promise.all([
       pool.query<StallRow>(
-        `SELECT id, name, owner, description, address, image_url, proof_of_ownership_url
+        `SELECT ${STALL_SELECT_COLUMNS}
          FROM stalls WHERE id = $1 LIMIT 1`,
         [stallId]
       ),

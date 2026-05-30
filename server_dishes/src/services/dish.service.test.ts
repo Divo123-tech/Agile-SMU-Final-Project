@@ -17,6 +17,10 @@ function mockStallExists(exists: boolean): void {
   } as never);
 }
 
+function mockTouchStallUpdatedAt(): void {
+  mockQuery.mockResolvedValueOnce({ rows: [] } as never);
+}
+
 describe("Dish service — CRUD", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -73,6 +77,7 @@ describe("Dish service — CRUD", () => {
     it("inserts a dish and returns the created record", async () => {
       mockStallExists(true);
       mockQuery.mockResolvedValueOnce({ rows: [dishRow] } as never);
+      mockTouchStallUpdatedAt();
 
       const result = await createDish({
         stallId: 101,
@@ -88,6 +93,11 @@ describe("Dish service — CRUD", () => {
         expect.stringContaining("INSERT INTO dishes"),
         [101, "Crispy Spring Rolls", "Served with sweet chili sauce", "gluten, soy", "Appetizers"]
       );
+      expect(mockQuery).toHaveBeenNthCalledWith(
+        3,
+        "UPDATE stalls SET updated_at = NOW() WHERE id = $1",
+        [101]
+      );
     });
 
     it("defaults category to Other and stores null allergens when none provided", async () => {
@@ -95,6 +105,7 @@ describe("Dish service — CRUD", () => {
       mockQuery.mockResolvedValueOnce({
         rows: [{ ...dishRow, allergens: null, category: "Other" }],
       } as never);
+      mockTouchStallUpdatedAt();
 
       const result = await createDish({
         stallId: 101,
@@ -161,6 +172,7 @@ describe("Dish service — CRUD", () => {
             },
           ],
         } as never);
+      mockTouchStallUpdatedAt();
 
       const result = await updateDish(42, {
         name: "Updated Spring Rolls",
@@ -179,6 +191,7 @@ describe("Dish service — CRUD", () => {
         .mockResolvedValueOnce({
           rows: [{ ...dishRow, dish_name: "Renamed", description: "New desc" }],
         } as never);
+      mockTouchStallUpdatedAt();
 
       await updateDish(42, {
         name: "Renamed",
@@ -186,9 +199,15 @@ describe("Dish service — CRUD", () => {
         allergens: [],
       });
 
-      expect(mockQuery).toHaveBeenLastCalledWith(
+      expect(mockQuery).toHaveBeenNthCalledWith(
+        2,
         expect.stringContaining("UPDATE dishes"),
         [101, "Renamed", "New desc", null, "Appetizers", 42]
+      );
+      expect(mockQuery).toHaveBeenNthCalledWith(
+        3,
+        "UPDATE stalls SET updated_at = NOW() WHERE id = $1",
+        [101]
       );
     });
 
@@ -249,13 +268,20 @@ describe("Dish service — CRUD", () => {
   describe("DELETE (deleteDish)", () => {
     it("deletes a dish and returns the removed record", async () => {
       mockQuery.mockResolvedValueOnce({ rows: [dishRow] } as never);
+      mockTouchStallUpdatedAt();
 
       const result = await deleteDish(42);
 
       expect(result).toEqual(dishResponse);
-      expect(mockQuery).toHaveBeenCalledWith(
+      expect(mockQuery).toHaveBeenNthCalledWith(
+        1,
         "DELETE FROM dishes WHERE dish_id = $1 RETURNING *",
         [42]
+      );
+      expect(mockQuery).toHaveBeenNthCalledWith(
+        2,
+        "UPDATE stalls SET updated_at = NOW() WHERE id = $1",
+        [101]
       );
     });
 

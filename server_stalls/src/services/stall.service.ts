@@ -1,5 +1,6 @@
 import { pool } from "../db";
 import { NotFoundError, ServiceError } from "../errors";
+import { STALL_SELECT_COLUMNS, stallUpdatedAtToIso } from "../lib/stall-row";
 import { resolveImageUrlForClient } from "../lib/s3";
 import type {
   CreateStallInput,
@@ -20,6 +21,7 @@ async function stallRowToResponse(row: StallRow): Promise<StallResponse> {
     address: row.address?.trim() ?? "",
     image: await resolveImageUrlForClient(imageUrl),
     proofOfOwnership: row.proof_of_ownership_url?.trim() ?? "",
+    updatedAt: stallUpdatedAtToIso(row.updated_at),
   };
 }
 
@@ -28,7 +30,7 @@ export async function createStall(input: CreateStallInput): Promise<StallRespons
     const { rows } = await pool.query<StallRow>(`
       INSERT INTO stalls (name, owner, description, address, image_url, proof_of_ownership_url)
       VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING id, name, owner, description, address, image_url, proof_of_ownership_url`,
+      RETURNING ${STALL_SELECT_COLUMNS}`,
       [
         input.name,
         input.owner,
@@ -48,7 +50,7 @@ export async function createStall(input: CreateStallInput): Promise<StallRespons
 export async function getStallById(stallId: number): Promise<StallResponse> {
   try {
     const { rows } = await pool.query<StallRow>(
-      `SELECT id, name, owner, description, address, image_url, proof_of_ownership_url
+      `SELECT ${STALL_SELECT_COLUMNS}
        FROM stalls
        WHERE id = $1
        LIMIT 1`,
@@ -76,7 +78,7 @@ export async function updateStall(
 ): Promise<StallResponse> {
   try {
     const existing = await pool.query<StallRow>(
-      `SELECT id, name, owner, description, address, image_url, proof_of_ownership_url
+      `SELECT ${STALL_SELECT_COLUMNS}
        FROM stalls
        WHERE id = $1
        LIMIT 1`,
@@ -94,9 +96,9 @@ export async function updateStall(
 
     const { rows } = await pool.query<StallRow>(
       `UPDATE stalls
-       SET name = $1, description = $2, address = $3, image_url = $4, proof_of_ownership_url = $5
+       SET name = $1, description = $2, address = $3, image_url = $4, proof_of_ownership_url = $5, updated_at = NOW()
        WHERE id = $6
-       RETURNING id, name, owner, description, address, image_url, proof_of_ownership_url`,
+       RETURNING ${STALL_SELECT_COLUMNS}`,
       [
         input.name,
         input.description,
@@ -121,7 +123,7 @@ export async function updateStall(
 export async function deleteStall(stallId: number): Promise<StallResponse> {
   try {
     const existing = await pool.query<StallRow>(
-      `SELECT id, name, owner, description, address, image_url, proof_of_ownership_url
+      `SELECT ${STALL_SELECT_COLUMNS}
        FROM stalls
        WHERE id = $1
        LIMIT 1`,
@@ -137,7 +139,7 @@ export async function deleteStall(stallId: number): Promise<StallResponse> {
     const { rows } = await pool.query<StallRow>(
       `DELETE FROM stalls
        WHERE id = $1
-       RETURNING id, name, owner, description, address, image_url, proof_of_ownership_url`,
+       RETURNING ${STALL_SELECT_COLUMNS}`,
       [stallId]
     );
 
@@ -155,7 +157,7 @@ export async function deleteStall(stallId: number): Promise<StallResponse> {
 export async function getMyStalls(ownerId: number): Promise<MyStallsResponse> {
   try {
     const { rows } = await pool.query<StallRow>(
-      `SELECT id, name, owner, description, address, image_url, proof_of_ownership_url
+      `SELECT ${STALL_SELECT_COLUMNS}
        FROM stalls
        WHERE owner = $1
        ORDER BY id ASC`,

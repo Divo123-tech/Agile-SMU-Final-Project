@@ -17,6 +17,14 @@ interface StallInfo {
   image: string
   address?: string
   owner: number
+  updatedAt?: string | null
+}
+
+function formatLastUpdated(iso: string): string {
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(iso))
 }
 
 interface MenuCategory {
@@ -155,6 +163,9 @@ function Stall() {
         stallDescription={stall.description}
         stallAddress={stall.address}
         stallImage={stall.image}
+        lastUpdated={
+          stall.updatedAt ? formatLastUpdated(stall.updatedAt) : null
+        }
       />
 
       {stallAllergens.length > 0 && (

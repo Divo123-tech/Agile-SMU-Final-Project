@@ -24,6 +24,10 @@ async function stallExists(stallId: number): Promise<boolean> {
   return rows.length > 0;
 }
 
+async function touchStallUpdatedAt(stallId: number): Promise<void> {
+  await pool.query(`UPDATE stalls SET updated_at = NOW() WHERE id = $1`, [stallId]);
+}
+
 export async function getDishById(dishId: number): Promise<DishResponse> {
   try {
     const { rows } = await pool.query<DishRow>(
@@ -83,6 +87,11 @@ export async function updateDish(
       [stallId, input.name, input.description, allergensValue, category, dishId]
     );
 
+    await touchStallUpdatedAt(stallId);
+    if (input.stallId !== undefined && input.stallId !== current.stall_id) {
+      await touchStallUpdatedAt(current.stall_id);
+    }
+
     return dishRowToResponse(rows[0]);
   } catch (err) {
     if (err instanceof NotFoundError) {
@@ -104,6 +113,8 @@ export async function deleteDish(dishId: number): Promise<DishResponse> {
     if (rows.length === 0) {
       throw new NotFoundError(`Dish with id ${dishId} was not found`);
     }
+
+    await touchStallUpdatedAt(rows[0].stall_id);
 
     return dishRowToResponse(rows[0]);
   } catch (err) {
@@ -133,6 +144,8 @@ export async function createDish(input: CreateDishInput): Promise<DishResponse> 
        RETURNING *`,
       [input.stallId, input.name, input.description, allergensValue, category]
     );
+
+    await touchStallUpdatedAt(input.stallId);
 
     return dishRowToResponse(rows[0]);
   } catch (err) {

@@ -1,13 +1,20 @@
-import { MapPin } from "lucide-react"
+import { Clock, MapPin } from "lucide-react"
 
 interface MenuHeaderProps {
     stallName: string
     stallDescription?: string
     stallAddress?: string
     stallImage?: string
+    lastUpdated?: string | null
   }
-  
-  export function MenuHeader({ stallName, stallDescription, stallAddress, stallImage }: MenuHeaderProps) {
+
+  export function MenuHeader({
+    stallName,
+    stallDescription,
+    stallAddress,
+    stallImage,
+    lastUpdated,
+  }: MenuHeaderProps) {
     return (
       <header className="relative">
         {/* Hero Image */}
@@ -37,7 +44,14 @@ interface MenuHeaderProps {
                 {stallDescription}
               </p>
             )}
- 
+            {lastUpdated && (
+              <div className="mt-3 flex items-center gap-2 pt-1 border-t border-border/50">
+                <Clock className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                <p className="text-xs text-muted-foreground">
+                  Last updated {lastUpdated}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </header>

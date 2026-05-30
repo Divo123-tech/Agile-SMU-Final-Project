@@ -32,7 +32,7 @@ export default function LoginPage() {
       login(res.data.token)
 
       toast.success("Signed in successfully!")
-      navigate("/")
+      navigate("/my-stalls")
     } catch (err: unknown) {
       const message =
         axios.isAxiosError(err) && err.response?.status === 401

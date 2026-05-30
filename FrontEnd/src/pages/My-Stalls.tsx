@@ -1,12 +1,19 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import axios from "axios"
 import { toast } from "sonner"
-import { ArrowLeft, Eye, Pencil, Plus, Store, Trash2 } from "lucide-react"
+import {
+  ArrowLeft,
+  MoreVertical,
+  Pencil,
+  Plus,
+  QrCode,
+  Store,
+  Trash2,
+} from "lucide-react"
 import { deleteStall, getMyStalls, type MyStallsResponse, type Stall } from "@/lib/api"
 import { useAuth } from "@/hooks/useAuth"
 import { Button } from "@/components/ui/button"
-
 function StallListItem({
   stall,
   isOwner,
@@ -18,6 +25,21 @@ function StallListItem({
 }) {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!menuOpen) return
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [menuOpen])
 
   const handleDelete = async () => {
     setIsDeleting(true)
@@ -43,28 +65,30 @@ function StallListItem({
   return (
     <li>
       <div className="flex gap-3 rounded-xl border border-border bg-card p-4">
-        {stall.image ? (
-          <img
-            src={stall.image}
-            alt=""
-            className="size-16 shrink-0 rounded-lg object-cover bg-muted"
-          />
-        ) : (
-          <div className="size-16 shrink-0 rounded-lg bg-muted flex items-center justify-center">
-            <Store className="w-6 h-6 text-muted-foreground" />
-          </div>
-        )}
-        <div className="min-w-0 flex-1">
-          <p className="font-medium text-foreground truncate">{stall.name}</p>
-          <p className="text-sm text-muted-foreground line-clamp-2 mt-0.5">
-            {stall.description}
-          </p>
-          {stall.address && (
-            <p className="text-xs text-muted-foreground mt-1 truncate">
-              {stall.address}
-            </p>
+        <Link to={`/stall/${stall.id}`} className="flex gap-3 min-w-0 flex-1">
+          {stall.image ? (
+            <img
+              src={stall.image}
+              alt=""
+              className="size-16 shrink-0 rounded-lg object-cover bg-muted"
+            />
+          ) : (
+            <div className="size-16 shrink-0 rounded-lg bg-muted flex items-center justify-center">
+              <Store className="w-6 h-6 text-muted-foreground" />
+            </div>
           )}
-        </div>
+          <div className="min-w-0 flex-1">
+            <p className="font-medium text-foreground truncate">{stall.name}</p>
+            <p className="text-sm text-muted-foreground line-clamp-2 mt-0.5">
+              {stall.description}
+            </p>
+            {stall.address && (
+              <p className="text-xs text-muted-foreground mt-1 truncate">
+                {stall.address}
+              </p>
+            )}
+          </div>
+        </Link>
 
         {confirmDelete ? (
           <div className="flex flex-col gap-2 shrink-0 w-28">
@@ -91,50 +115,60 @@ function StallListItem({
               {isDeleting ? "Deleting…" : "Confirm"}
             </Button>
           </div>
-        ) : (
-          <div className="flex flex-col gap-1.5 shrink-0">
+        ) : isOwner ? (
+          <div ref={menuRef} className="relative shrink-0 self-start">
             <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="rounded-lg w-20 justify-center"
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="rounded-lg"
+              onClick={() => setMenuOpen((open) => !open)}
+              aria-label={`Options for ${stall.name}`}
+              aria-expanded={menuOpen}
+              aria-haspopup="menu"
             >
-              <Link to={`/stall/${stall.id}`} aria-label={`View ${stall.name}`}>
-                <Eye className="w-3.5 h-3.5 mr-1" />
-                View
-              </Link>
+              <MoreVertical className="w-5 h-5" />
             </Button>
-            {isOwner && (
-              <>
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                  className="rounded-lg w-20 justify-center"
+
+            {menuOpen && (
+              <div
+                role="menu"
+                className="absolute right-0 top-full z-20 mt-1 min-w-[10.5rem] rounded-xl border border-border bg-card py-1 shadow-lg"
+              >
+                <Link
+                  to={`/edit-stall/${stall.id}`}
+                  role="menuitem"
+                  className="flex w-full items-center gap-2 px-3 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
+                  onClick={() => setMenuOpen(false)}
                 >
-                  <Link
-                    to={`/edit-stall/${stall.id}`}
-                    aria-label={`Edit ${stall.name}`}
-                  >
-                    <Pencil className="w-3.5 h-3.5 mr-1" />
-                    Edit
-                  </Link>
-                </Button>
-                <Button
+                  <Pencil className="w-4 h-4" />
+                  Edit
+                </Link>
+                <button
                   type="button"
-                  variant="outline"
-                  size="sm"
-                  className="rounded-lg w-20 justify-center text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
-                  onClick={() => setConfirmDelete(true)}
-                  aria-label={`Delete ${stall.name}`}
+                  role="menuitem"
+                  className="flex w-full items-center gap-2 px-3 py-2.5 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+                  onClick={() => {
+                    setMenuOpen(false)
+                    setConfirmDelete(true)
+                  }}
                 >
-                  <Trash2 className="w-3.5 h-3.5 mr-1" />
+                  <Trash2 className="w-4 h-4" />
                   Delete
-                </Button>
-              </>
+                </button>
+                <Link
+                  to={`/stall-qr/${stall.id}`}
+                  role="menuitem"
+                  className="flex w-full items-center gap-2 px-3 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <QrCode className="w-4 h-4" />
+                  Generate QR
+                </Link>
+              </div>
             )}
           </div>
-        )}
+        ) : null}
       </div>
     </li>
   )

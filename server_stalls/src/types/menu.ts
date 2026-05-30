@@ -26,6 +26,7 @@ export type StallMenuOut = {
   image: string;
   address: string;
   owner: number;
+  updatedAt: string | null;
 };
 
 export type StallMenuResponse = {

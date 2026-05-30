@@ -23,6 +23,7 @@ const sampleStallRow = {
   image_url: "https://example.com/stall.jpg",
   address: "Food Court Level 2",
   proof_of_ownership_url: "https://example.com/proof.pdf",
+  updated_at: "2026-05-23T10:00:00.000Z",
 };
 
 const padThaiRow = {
@@ -74,6 +75,7 @@ describe("getStallMenu", () => {
       image: "https://example.com/stall.jpg",
       address: "Food Court Level 2",
       owner: 42,
+      updatedAt: "2026-05-23T10:00:00.000Z",
     });
     expect(result.categories).toHaveLength(2);
     expect(result.categories[0]).toEqual({

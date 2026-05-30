@@ -123,6 +123,7 @@ describe("Stall API", () => {
           image: stallResponse.image,
           address: stallResponse.address,
           owner: stallResponse.owner,
+          updatedAt: stallResponse.updatedAt,
         },
         categories: [],
       };

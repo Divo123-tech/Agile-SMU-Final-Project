@@ -32,6 +32,7 @@ describe("Stall service", () => {
             address: createStallInput.address,
             image_url: createStallInput.imageUrl,
             proof_of_ownership_url: createStallInput.proofOfOwnershipUrl,
+            updated_at: stallResponse.updatedAt,
           },
         ],
       } as never);
@@ -54,6 +55,7 @@ describe("Stall service", () => {
             address: stallResponse.address,
             image_url: stallResponse.image,
             proof_of_ownership_url: stallResponse.proofOfOwnership,
+            updated_at: stallResponse.updatedAt,
           },
         ],
       } as never);

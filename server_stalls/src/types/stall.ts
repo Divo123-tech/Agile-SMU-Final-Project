@@ -15,6 +15,7 @@ export type StallResponse = {
   address: string;
   image: string;
   proofOfOwnership: string;
+  updatedAt: string | null;
 };
 
 export type StallRow = {
@@ -25,6 +26,7 @@ export type StallRow = {
   address: string | null;
   image_url: string | null;
   proof_of_ownership_url: string | null;
+  updated_at?: Date | string | null;
 };
 
 export type MyStallsResponse = {

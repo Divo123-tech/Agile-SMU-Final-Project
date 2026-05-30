@@ -63,6 +63,7 @@ export type StallMenuInfo = {
   image: string
   address: string
   owner: number
+  updatedAt: string | null
 }
 
 export type StallMenuResponse = {
