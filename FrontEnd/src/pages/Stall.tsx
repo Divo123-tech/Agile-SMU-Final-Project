@@ -1,8 +1,15 @@
-import { useParams } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
 import { SiteHeader } from "@/components/site-header"
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, useCallback } from "react"
 import axios from "axios"
-import { getAccount, getStallMenu } from "@/lib/api"
+import { toast } from "sonner"
+import {
+  bookmarkDish,
+  getAccount,
+  getMyDishes,
+  getStallMenu,
+  unbookmarkDish,
+} from "@/lib/api"
 import { parseAllergenTypes } from "@/lib/allergens"
 import { useAuth } from "@/hooks/useAuth"
 import { StallNotFound } from "@/components/stall-not-found"
@@ -47,6 +54,7 @@ const ALLERGEN_ORDER: AllergenType[] = [
 
 function Stall() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const { isLoggedIn, user } = useAuth()
   const userId = user?.id ?? null
   const [stall, setStall] = useState<StallInfo | null>(null)
@@ -55,6 +63,8 @@ function Stall() {
   const [errorStatus, setErrorStatus] = useState<number | null>(null)
   const [filteredAllergens, setFilteredAllergens] = useState<AllergenType[]>([])
   const [searchQuery, setSearchQuery] = useState("")
+  const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(() => new Set())
+  const [bookmarkingId, setBookmarkingId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!id) return
@@ -106,6 +116,71 @@ function Stall() {
       cancelled = true
     }
   }, [isLoggedIn])
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setBookmarkedIds(new Set())
+      return
+    }
+
+    let cancelled = false
+
+    ;(async () => {
+      try {
+        const saved = await getMyDishes()
+        if (!cancelled) {
+          setBookmarkedIds(new Set(saved.dishes.map((dish) => dish.id)))
+        }
+      } catch {
+        if (!cancelled) setBookmarkedIds(new Set())
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [isLoggedIn])
+
+  const handleBookmarkToggle = useCallback(
+    async (dishId: string) => {
+      if (!isLoggedIn) {
+        navigate(id ? `/login` : "/login", {
+          state: { from: id ? `/stall/${id}` : "/" },
+        })
+        return
+      }
+
+      setBookmarkingId(dishId)
+
+      try {
+        if (bookmarkedIds.has(dishId)) {
+          await unbookmarkDish(Number(dishId))
+          setBookmarkedIds((prev) => {
+            const next = new Set(prev)
+            next.delete(dishId)
+            return next
+          })
+          toast.success("Removed from My Dishes")
+        } else {
+          await bookmarkDish(Number(dishId))
+          setBookmarkedIds((prev) => new Set(prev).add(dishId))
+          toast.success("Saved to My Dishes")
+        }
+      } catch (err: unknown) {
+        const message =
+          axios.isAxiosError(err) && err.response?.data
+            ? String(
+                (err.response.data as { error?: string }).error ??
+                  `Failed to update saved dish (${err.response.status})`,
+              )
+            : "Failed to update saved dish. Please try again."
+        toast.error(message)
+      } finally {
+        setBookmarkingId(null)
+      }
+    },
+    [bookmarkedIds, id, isLoggedIn, navigate],
+  )
 
   const toggleAllergen = (allergen: AllergenType) => {
     setFilteredAllergens((prev) =>
@@ -242,6 +317,10 @@ function Stall() {
             dishes={category.dishes}
             isOwner={isOwner}
             onDishDeleted={handleDishDeleted}
+            showBookmark={isLoggedIn}
+            bookmarkedIds={bookmarkedIds}
+            bookmarkingId={bookmarkingId}
+            onBookmarkToggle={handleBookmarkToggle}
           />
         ))}
       </div>

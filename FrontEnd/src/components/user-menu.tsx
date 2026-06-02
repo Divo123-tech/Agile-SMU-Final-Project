@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { LogOut, Settings, Store, User } from "lucide-react"
+import { Bookmark, LogOut, Settings, Store, User } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 
 export function UserMenu() {
@@ -46,6 +46,15 @@ export function UserMenu() {
           role="menu"
           className="absolute right-0 z-30 mt-2 w-52 overflow-hidden rounded-xl border border-border bg-card shadow-lg"
         >
+          <Link
+            to="/my-dishes"
+            role="menuitem"
+            className="flex w-full items-center gap-2 px-3 py-2.5 text-sm text-foreground transition-colors hover:bg-muted"
+            onClick={() => setMenuOpen(false)}
+          >
+            <Bookmark className="size-4" />
+            My Dishes
+          </Link>
           <Link
             to="/my-stalls"
             role="menuitem"

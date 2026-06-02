@@ -35,6 +35,11 @@ export type MyStallsResponse = {
   stalls: StallResponse[];
 };
 
+export type StallsResponse = {
+  count: number;
+  stalls: StallResponse[];
+};
+
 export type UpdateStallInput = {
   name: string;
   description: string;

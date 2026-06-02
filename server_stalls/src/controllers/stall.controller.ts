@@ -5,6 +5,7 @@ import { getStallMenu } from "../services/stall-menu.service";
 import {
   createStall,
   deleteStall,
+  getStalls,
   getMyStalls,
   getStallById,
   updateStall,
@@ -200,6 +201,19 @@ export async function getMyStallsHandler(
   try {
     const userId = parseUserIdParam(req.params.userId as string | string[]);
     const result = await getMyStalls(userId);
+    res.json(result);
+  } catch (err) {
+    handleStallError(err, res, next);
+  }
+}
+
+export async function getStallsHandler(
+  _req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const result = await getStalls();
     res.json(result);
   } catch (err) {
     handleStallError(err, res, next);

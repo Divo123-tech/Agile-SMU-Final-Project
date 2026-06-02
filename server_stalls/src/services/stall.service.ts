@@ -5,6 +5,7 @@ import { resolveImageUrlForClient } from "../lib/s3";
 import type {
   CreateStallInput,
   MyStallsResponse,
+  StallsResponse,
   StallResponse,
   StallRow,
   UpdateStallInput,
@@ -173,6 +174,25 @@ export async function getMyStalls(ownerId: number): Promise<MyStallsResponse> {
     };
   } catch (err) {
     console.error(`getMyStalls failed for ownerId=${ownerId}:`, err);
+    throw new ServiceError("Unable to load stalls. Please try again later.");
+  }
+}
+
+export async function getStalls(): Promise<StallsResponse> {
+  try {
+    const { rows } = await pool.query<StallRow>(
+      `SELECT ${STALL_SELECT_COLUMNS}
+       FROM stalls
+       ORDER BY id ASC`
+    );
+
+    const stalls = await Promise.all(rows.map(stallRowToResponse));
+    return {
+      count: stalls.length,
+      stalls,
+    };
+  } catch (err) {
+    console.error("getStalls failed:", err);
     throw new ServiceError("Unable to load stalls. Please try again later.");
   }
 }

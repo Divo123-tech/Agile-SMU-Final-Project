@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Link } from "react-router-dom"
 import axios from "axios"
 import { toast } from "sonner"
-import { Pencil, Trash2 } from "lucide-react"
+import { Bookmark, Pencil, Trash2 } from "lucide-react"
 import { API_BASE_URL } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { AllergenBadge, type AllergenType } from "./allergen-badge"
@@ -23,9 +23,22 @@ interface DishCardProps {
   className?: string
   isOwner?: boolean
   onDishDeleted?: (dishId: string) => void
+  showBookmark?: boolean
+  isBookmarked?: boolean
+  isBookmarking?: boolean
+  onBookmarkToggle?: (dishId: string) => void
 }
 
-export function DishCard({ dish, className, isOwner = false, onDishDeleted }: DishCardProps) {
+export function DishCard({
+  dish,
+  className,
+  isOwner = false,
+  onDishDeleted,
+  showBookmark = false,
+  isBookmarked = false,
+  isBookmarking = false,
+  onBookmarkToggle,
+}: DishCardProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -62,6 +75,20 @@ export function DishCard({ dish, className, isOwner = false, onDishDeleted }: Di
           {dish.name}
         </h3>
         <div className="flex items-center gap-2 shrink-0">
+          {showBookmark && (
+            <button
+              type="button"
+              onClick={() => onBookmarkToggle?.(dish.id)}
+              disabled={isBookmarking}
+              className="rounded-lg p-1.5 text-primary transition-colors hover:bg-muted disabled:opacity-50"
+              aria-label={isBookmarked ? "Remove saved dish" : "Save dish"}
+              aria-pressed={isBookmarked}
+            >
+              <Bookmark
+                className={cn("size-5", isBookmarked && "fill-current")}
+              />
+            </button>
+          )}
           {dish.isPopular && (
             <span className="text-[10px] font-semibold uppercase tracking-wide text-primary">
               Popular

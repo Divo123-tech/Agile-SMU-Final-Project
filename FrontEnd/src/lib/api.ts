@@ -48,6 +48,11 @@ export type MyStallsResponse = {
   stalls: Stall[]
 }
 
+export type StallsResponse = {
+  count: number
+  stalls: Stall[]
+}
+
 export type StallMenuDish = {
   id: string
   name: string
@@ -117,6 +122,12 @@ export async function getMyStalls(userId: number): Promise<MyStallsResponse> {
     `${STALLS_API_BASE_URL}/my-stalls/${userId}`,
   )
 
+  return data
+}
+
+/** GET /stalls — list all stalls for public browsing. */
+export async function getStalls(): Promise<StallsResponse> {
+  const { data } = await axios.get<StallsResponse>(`${STALLS_API_BASE_URL}/stalls`)
   return data
 }
 
@@ -210,6 +221,50 @@ export async function updateAccount(
 
   setAuthToken(data.token)
   return data
+}
+
+export type BookmarkedDish = {
+  id: string
+  stallId: number
+  stallName: string
+  name: string
+  description: string
+  allergens: string[]
+  category: string
+  savedAt: string
+}
+
+export type MyDishesResponse = {
+  stalls: { id: number; name: string }[]
+  dishes: BookmarkedDish[]
+}
+
+/** GET /my-dishes — saved dishes and stall filter options. */
+export async function getMyDishes(): Promise<MyDishesResponse> {
+  const { data } = await axios.get<MyDishesResponse>(
+    `${ACCOUNTS_API_BASE_URL}/my-dishes`,
+    { headers: withAuthHeader() },
+  )
+
+  return data
+}
+
+/** POST /my-dishes/:dishId — bookmark a dish. */
+export async function bookmarkDish(dishId: number): Promise<BookmarkedDish> {
+  const { data } = await axios.post<BookmarkedDish>(
+    `${ACCOUNTS_API_BASE_URL}/my-dishes/${dishId}`,
+    {},
+    { headers: withAuthHeader() },
+  )
+
+  return data
+}
+
+/** DELETE /my-dishes/:dishId — remove a bookmark. */
+export async function unbookmarkDish(dishId: number): Promise<void> {
+  await axios.delete(`${ACCOUNTS_API_BASE_URL}/my-dishes/${dishId}`, {
+    headers: withAuthHeader(),
+  })
 }
 
 /** Attach stored JWT to outgoing axios requests. */

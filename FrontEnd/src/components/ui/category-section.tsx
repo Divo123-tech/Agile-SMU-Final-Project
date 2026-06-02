@@ -5,6 +5,10 @@ interface CategorySectionProps {
   dishes: Dish[]
   isOwner?: boolean
   onDishDeleted?: (dishId: string) => void
+  showBookmark?: boolean
+  bookmarkedIds?: Set<string>
+  bookmarkingId?: string | null
+  onBookmarkToggle?: (dishId: string) => void
 }
 
 export function CategorySection({
@@ -12,6 +16,10 @@ export function CategorySection({
   dishes,
   isOwner = false,
   onDishDeleted,
+  showBookmark = false,
+  bookmarkedIds,
+  bookmarkingId = null,
+  onBookmarkToggle,
 }: CategorySectionProps) {
   if (dishes.length === 0) return null
 
@@ -27,6 +35,10 @@ export function CategorySection({
             dish={dish}
             isOwner={isOwner}
             onDishDeleted={onDishDeleted}
+            showBookmark={showBookmark}
+            isBookmarked={bookmarkedIds?.has(dish.id) ?? false}
+            isBookmarking={bookmarkingId === dish.id}
+            onBookmarkToggle={onBookmarkToggle}
           />
         ))}
       </div>

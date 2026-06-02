@@ -4,6 +4,7 @@ import {
   createStallHandler,
   deleteStallHandler,
   getMyStallsHandler,
+  getStallsHandler,
   getStallByIdHandler,
   getStallMenuHandler,
   updateStallHandler,
@@ -15,6 +16,8 @@ const router = Router();
 router.get("/my-stalls/:userId", getMyStallsHandler);
 
 router.get("/stall/:id", getStallMenuHandler);
+
+router.get("/stalls", getStallsHandler);
 
 router.get("/stalls/:id", getStallByIdHandler);
 
