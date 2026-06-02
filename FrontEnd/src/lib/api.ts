@@ -24,8 +24,11 @@ export type LoginResponse = {
   account: {
     id: number
     email: string
+    allergies: string[]
   }
 }
+
+export type AccountProfile = LoginResponse["account"]
 
 export type Stall = {
   id: number
@@ -176,6 +179,37 @@ export function setAuthToken(token: string): void {
 
 export function clearAuthToken(): void {
   localStorage.removeItem(TOKEN_STORAGE_KEY)
+}
+
+/** GET /account — profile for the signed-in user. */
+export async function getAccount(): Promise<AccountProfile> {
+  const { data } = await axios.get<AccountProfile>(
+    `${ACCOUNTS_API_BASE_URL}/account`,
+    { headers: withAuthHeader() },
+  )
+
+  return data
+}
+
+export type UpdateAccountPayload = {
+  currentPassword: string
+  email?: string
+  newPassword?: string
+  allergies?: string[]
+}
+
+/** PATCH /account — update email and/or password; returns a fresh JWT. */
+export async function updateAccount(
+  payload: UpdateAccountPayload,
+): Promise<LoginResponse> {
+  const { data } = await axios.patch<LoginResponse>(
+    `${ACCOUNTS_API_BASE_URL}/account`,
+    payload,
+    { headers: withAuthHeader({ "Content-Type": "application/json" }) },
+  )
+
+  setAuthToken(data.token)
+  return data
 }
 
 /** Attach stored JWT to outgoing axios requests. */

@@ -38,7 +38,7 @@ describe("Login service", () => {
     const result = await login(loginBody);
 
     expect(mockQuery).toHaveBeenCalledWith(
-      "SELECT id, email, password_hash FROM accounts WHERE email = $1 LIMIT 1",
+      "SELECT id, email, password_hash, allergies FROM accounts WHERE email = $1 LIMIT 1",
       [loginBody.email]
     );
     expect(mockCompare).toHaveBeenCalledWith(

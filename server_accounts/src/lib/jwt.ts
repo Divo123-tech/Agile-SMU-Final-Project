@@ -16,3 +16,19 @@ export function signAccessToken(payload: AccessTokenPayload): string {
 
   return jwt.sign(payload, getJwtSecret(), options);
 }
+
+export function verifyAccessToken(token: string): AccessTokenPayload {
+  const decoded = jwt.verify(token, getJwtSecret());
+
+  if (decoded == null || typeof decoded !== "object") {
+    throw new Error("Invalid token payload");
+  }
+
+  const { sub, email } = decoded as AccessTokenPayload;
+
+  if (typeof sub !== "number" || typeof email !== "string") {
+    throw new Error("Invalid token payload");
+  }
+
+  return { sub, email };
+}

@@ -1,0 +1,62 @@
+# CI only: run tests and builds on GitHub when you push or open a PR.
+# No deploy (CD). Require this workflow to pass before merging via branch protection.
+
+name: CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - server_dishes
+          - server_stalls
+          - server_accounts
+    defaults:
+      run:
+        working-directory: ${{ matrix.service }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: ${{ matrix.service }}/package-lock.json
+
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+
+  frontend:
+    name: FrontEnd
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: FrontEnd
+    env:
+      # Required at build time (see FrontEnd/src/lib/api.ts)
+      VITE_DISHES_URL: http://localhost:3000
+      VITE_ACCOUNTS_URL: http://localhost:4001
+      VITE_STALLS_URL: http://localhost:4002
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: FrontEnd/package-lock.json
+
+      - run: npm ci
+      - run: npm run build

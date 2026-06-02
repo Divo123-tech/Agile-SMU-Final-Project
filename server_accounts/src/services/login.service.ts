@@ -1,13 +1,14 @@
 import bcrypt from "bcrypt";
 import { pool } from "../db";
 import { ServiceError, UnauthorizedError } from "../errors";
+import { normalizeAllergies } from "../lib/allergens";
 import { signAccessToken } from "../lib/jwt";
 import type { AccountRow, LoginInput, LoginResponse } from "../types/account";
 
 export async function login(input: LoginInput): Promise<LoginResponse> {
   try {
     const { rows } = await pool.query<AccountRow>(
-      "SELECT id, email, password_hash FROM accounts WHERE email = $1 LIMIT 1",
+      "SELECT id, email, password_hash, allergies FROM accounts WHERE email = $1 LIMIT 1",
       [input.email]
     );
 
@@ -35,6 +36,7 @@ export async function login(input: LoginInput): Promise<LoginResponse> {
       account: {
         id: account.id,
         email: account.email,
+        allergies: normalizeAllergies(account.allergies ?? []),
       },
     };
   } catch (err) {

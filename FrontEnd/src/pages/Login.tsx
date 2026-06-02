@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react"
+import { useEffect, useState, type FormEvent } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import axios from "axios"
 import { toast } from "sonner"
@@ -10,12 +10,18 @@ import { Input } from "@/components/ui/input"
 
 export default function LoginPage() {
   const navigate = useNavigate()
-  const { login } = useAuth()
+  const { login, isLoggedIn } = useAuth()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const isFormValid = email.trim() && password.length > 0
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      navigate("/my-account", { replace: true })
+    }
+  }, [isLoggedIn, navigate])
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -32,7 +38,7 @@ export default function LoginPage() {
       login(res.data.token)
 
       toast.success("Signed in successfully!")
-      navigate("/my-stalls")
+      navigate("/my-account", { replace: true })
     } catch (err: unknown) {
       const message =
         axios.isAxiosError(err) && err.response?.status === 401
@@ -66,7 +72,7 @@ export default function LoginPage() {
 
       <main className="max-w-lg mx-auto px-4 py-6">
         <p className="text-sm text-muted-foreground mb-6">
-          Welcome back. Sign in to manage your stall menu.
+          Welcome back. Sign in to manage your account, allergies, and stalls.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-5">

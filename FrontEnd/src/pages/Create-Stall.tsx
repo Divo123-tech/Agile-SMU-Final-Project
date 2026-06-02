@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 import axios from "axios"
 import { toast } from "sonner"
-import { ArrowLeft, FileCheck, ImagePlus, Store } from "lucide-react"
+import { PageHeader } from "@/components/page-header"
+import { FileCheck, ImagePlus, Store } from "lucide-react"
 import { createStall } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -105,7 +106,7 @@ export default function CreateStallPage() {
 
   useEffect(() => {
     if (!isLoggedIn) {
-      navigate("/login", { replace: true })
+      navigate("/login", { replace: true, state: { from: "/create-stall" } })
     }
   }, [isLoggedIn, navigate])
 
@@ -165,18 +166,7 @@ export default function CreateStallPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border">
-        <div className="max-w-lg mx-auto px-4 py-4 flex items-center gap-3">
-          <Link
-            to="/"
-            className="p-2 -ml-2 rounded-lg hover:bg-muted transition-colors"
-            aria-label="Back to home"
-          >
-            <ArrowLeft className="w-5 h-5 text-foreground" />
-          </Link>
-          <h1 className="font-serif text-xl font-medium text-foreground">Create Stall</h1>
-        </div>
-      </header>
+      <PageHeader title="Create Stall" backTo="/" backLabel="Back to home" />
 
       <main className="max-w-lg mx-auto px-4 py-6">
         <p className="text-sm text-muted-foreground mb-6">

@@ -37,7 +37,11 @@ describe("Sign-up service", () => {
        RETURNING id, email, password_hash`,
       [signUpBody.email, "$2b$10$hashedvalue"]
     );
-    expect(result).toEqual(accountResponse);
+    expect(result).toEqual({
+      id: accountResponse.id,
+      email: accountResponse.email,
+      allergies: [],
+    });
   });
 
   it("throws ValidationError when email is already registered", async () => {

@@ -11,11 +11,13 @@ export const accountRow: AccountRow = {
   id: 1,
   email: "user@example.com",
   password_hash: "$2b$10$hashedvalue",
+  allergies: ["peanuts", "soy"],
 };
 
 export const accountResponse: AccountResponse = {
   id: 1,
   email: "user@example.com",
+  allergies: ["soy"],
 };
 
 export const loginResponse: LoginResponse = {

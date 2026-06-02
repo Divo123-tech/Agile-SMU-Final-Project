@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react"
 import { Link, useParams } from "react-router-dom"
 import QRCode from "qrcode"
-import { ArrowLeft, Download } from "lucide-react"
+import { Download } from "lucide-react"
+import { PageHeader } from "@/components/page-header"
 import { getStall } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 
@@ -141,18 +142,11 @@ export default function StallQRPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border">
-        <div className="max-w-lg mx-auto px-4 py-4 flex items-center gap-3">
-          <Link
-            to="/my-stalls"
-            className="p-2 -ml-2 rounded-lg hover:bg-muted transition-colors"
-            aria-label="Back to my stalls"
-          >
-            <ArrowLeft className="w-5 h-5 text-foreground" />
-          </Link>
-          <h1 className="font-serif text-xl font-medium text-foreground">Stall QR Code</h1>
-        </div>
-      </header>
+      <PageHeader
+        title="Stall QR Code"
+        backTo="/my-stalls"
+        backLabel="Back to my stalls"
+      />
 
       <main className="max-w-lg mx-auto px-4 py-8 space-y-4">
         {!isValidStallId ? (

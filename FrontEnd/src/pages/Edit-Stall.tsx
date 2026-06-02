@@ -9,7 +9,8 @@ import {
 import { Link, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner";
-import { ArrowLeft, FileCheck, ImagePlus, Plus, Save } from "lucide-react";
+import { FileCheck, ImagePlus, Plus, Save } from "lucide-react";
+import { PageHeader } from "@/components/page-header";
 import { getStall, updateStall } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -235,20 +236,11 @@ export default function EditStallPage() {
 
     return (
         <div className="min-h-screen bg-background">
-            <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border">
-                <div className="max-w-lg mx-auto px-4 py-4 flex items-center gap-3">
-                    <Link
-                        to="/my-stalls"
-                        className="p-2 -ml-2 rounded-lg hover:bg-muted transition-colors"
-                        aria-label="Back to my stalls"
-                    >
-                        <ArrowLeft className="w-5 h-5 text-foreground" />
-                    </Link>
-                    <h1 className="font-serif text-xl font-medium text-foreground">
-                        Edit Stall
-                    </h1>
-                </div>
-            </header>
+            <PageHeader
+                title="Edit Stall"
+                backTo="/my-stalls"
+                backLabel="Back to my stalls"
+            />
 
             <main className="max-w-lg mx-auto px-4 py-6">
                 {isLoading ? (

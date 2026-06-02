@@ -4,32 +4,10 @@ import axios from "axios"
 import { toast } from "sonner"
 import { ArrowLeft, Check, UserPlus } from "lucide-react"
 import { ACCOUNTS_API_BASE_URL } from "@/lib/api"
+import { getPasswordChecks, isPasswordStrong } from "@/lib/password"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-
-const PASSWORD_RULES = [
-  { id: "length", label: "At least 8 characters", test: (p: string) => p.length >= 8 },
-  { id: "upper", label: "One uppercase letter", test: (p: string) => /[A-Z]/.test(p) },
-  { id: "lower", label: "One lowercase letter", test: (p: string) => /[a-z]/.test(p) },
-  { id: "number", label: "One number", test: (p: string) => /\d/.test(p) },
-  {
-    id: "special",
-    label: "One special character",
-    test: (p: string) => /[^A-Za-z0-9]/.test(p),
-  },
-] as const
-
-function getPasswordChecks(password: string) {
-  return PASSWORD_RULES.map((rule) => ({
-    ...rule,
-    met: rule.test(password),
-  }))
-}
-
-function isPasswordStrong(password: string) {
-  return getPasswordChecks(password).every((rule) => rule.met)
-}
 
 export default function CreateAccountPage() {
   const navigate = useNavigate()
@@ -68,8 +46,8 @@ export default function CreateAccountPage() {
         password,
       })
 
-      toast.success("Account created successfully!")
-      navigate("/")
+      toast.success("Account created! Sign in to continue.")
+      navigate("/login", { replace: true })
     } catch (err: unknown) {
       const message =
         axios.isAxiosError(err) && err.response?.data
@@ -103,7 +81,7 @@ export default function CreateAccountPage() {
 
       <main className="max-w-lg mx-auto px-4 py-6">
         <p className="text-sm text-muted-foreground mb-6">
-          Sign up to manage your stall menu and dishes.
+          Create an account to save your allergies, manage stalls, and browse menus safely.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-5">

@@ -1,7 +1,9 @@
 import { useParams } from "react-router-dom"
+import { SiteHeader } from "@/components/site-header"
 import { useState, useMemo, useEffect } from "react"
 import axios from "axios"
-import { getStallMenu } from "@/lib/api"
+import { getAccount, getStallMenu } from "@/lib/api"
+import { parseAllergenTypes } from "@/lib/allergens"
 import { useAuth } from "@/hooks/useAuth"
 import { StallNotFound } from "@/components/stall-not-found"
 import { MenuHeader } from "@/components/ui/menu-header"
@@ -45,7 +47,7 @@ const ALLERGEN_ORDER: AllergenType[] = [
 
 function Stall() {
   const { id } = useParams<{ id: string }>()
-  const { user } = useAuth()
+  const { isLoggedIn, user } = useAuth()
   const userId = user?.id ?? null
   const [stall, setStall] = useState<StallInfo | null>(null)
   const [categories, setCategories] = useState<MenuCategory[]>([])
@@ -81,6 +83,29 @@ function Stall() {
       cancelled = true
     }
   }, [id])
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setFilteredAllergens([])
+      return
+    }
+
+    let cancelled = false
+
+    ;(async () => {
+      try {
+        const profile = await getAccount()
+        if (cancelled) return
+        setFilteredAllergens(parseAllergenTypes(profile.allergies))
+      } catch {
+        if (!cancelled) setFilteredAllergens([])
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [isLoggedIn])
 
   const toggleAllergen = (allergen: AllergenType) => {
     setFilteredAllergens((prev) =>
@@ -158,6 +183,7 @@ function Stall() {
 
   return (
     <main className="min-h-screen bg-background pb-8">
+      <SiteHeader />
       <MenuHeader
         stallName={stall.name}
         stallDescription={stall.description}
@@ -190,11 +216,20 @@ function Stall() {
 
       <AllergenFilter selectedAllergens={filteredAllergens} onToggle={toggleAllergen} />
 
+      {isLoggedIn && filteredAllergens.length > 0 && (
+        <div className="px-5 pb-2">
+          <p className="text-xs text-muted-foreground">
+            Filtering dishes using your saved allergies from My Account. Tap a filter
+            above to adjust.
+          </p>
+        </div>
+      )}
+
       {totalHiddenDishes > 0 && (
         <div className="px-5 pb-4">
           <div className="bg-destructive/10 text-destructive rounded-lg px-4 py-3 text-sm">
             {totalHiddenDishes} dish{totalHiddenDishes > 1 ? "es" : ""} hidden based on your
-            allergen selections
+            allergy filters
           </div>
         </div>
       )}

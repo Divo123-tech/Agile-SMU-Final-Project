@@ -9,6 +9,7 @@ function accountRowToResponse(row: AccountRow): AccountResponse {
   return {
     id: row.id,
     email: row.email,
+    allergies: [],
   };
 }
 

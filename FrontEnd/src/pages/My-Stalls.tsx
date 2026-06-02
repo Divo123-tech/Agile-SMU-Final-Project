@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom"
 import axios from "axios"
 import { toast } from "sonner"
 import {
-  ArrowLeft,
   MoreVertical,
   Pencil,
   Plus,
@@ -11,6 +10,7 @@ import {
   Store,
   Trash2,
 } from "lucide-react"
+import { PageHeader } from "@/components/page-header"
 import { deleteStall, getMyStalls, type MyStallsResponse, type Stall } from "@/lib/api"
 import { useAuth } from "@/hooks/useAuth"
 import { Button } from "@/components/ui/button"
@@ -184,7 +184,7 @@ export default function MyStallsPage() {
 
   useEffect(() => {
     if (!isLoggedIn) {
-      navigate("/login", { replace: true })
+      navigate("/login", { replace: true, state: { from: "/my-stalls" } })
     }
   }, [isLoggedIn, navigate])
 
@@ -237,27 +237,20 @@ export default function MyStallsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border">
-        <div className="max-w-lg mx-auto px-4 py-4 flex items-center gap-3">
-          <Link
-            to="/"
-            className="p-2 -ml-2 rounded-lg hover:bg-muted transition-colors"
-            aria-label="Back to home"
-          >
-            <ArrowLeft className="w-5 h-5 text-foreground" />
-          </Link>
-          <h1 className="font-serif text-xl font-medium text-foreground flex-1">
-            My Stalls
-          </h1>
+      <PageHeader
+        title="My Stalls"
+        backTo="/"
+        backLabel="Back to home"
+        trailing={
           <Link
             to="/create-stall"
-            className="p-2 rounded-lg hover:bg-muted transition-colors"
+            className="shrink-0 rounded-lg p-2 transition-colors hover:bg-muted"
             aria-label="Create stall"
           >
-            <Plus className="w-5 h-5 text-foreground" />
+            <Plus className="size-5 text-foreground" />
           </Link>
-        </div>
-      </header>
+        }
+      />
 
       <main className="max-w-lg mx-auto px-4 py-6">
         {loading ? (
