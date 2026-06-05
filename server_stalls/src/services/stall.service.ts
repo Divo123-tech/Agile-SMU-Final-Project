@@ -22,6 +22,8 @@ async function stallRowToResponse(row: StallRow): Promise<StallResponse> {
     address: row.address?.trim() ?? "",
     image: await resolveImageUrlForClient(imageUrl),
     proofOfOwnership: row.proof_of_ownership_url?.trim() ?? "",
+    status: row.status,
+    adminNotes: row.admin_notes?.trim() || null,
     updatedAt: stallUpdatedAtToIso(row.updated_at),
   };
 }
@@ -183,6 +185,7 @@ export async function getStalls(): Promise<StallsResponse> {
     const { rows } = await pool.query<StallRow>(
       `SELECT ${STALL_SELECT_COLUMNS}
        FROM stalls
+       WHERE status = 'approved'
        ORDER BY id ASC`
     );
 

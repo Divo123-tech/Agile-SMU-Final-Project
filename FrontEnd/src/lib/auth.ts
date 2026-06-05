@@ -1,11 +1,13 @@
 export type AuthUser = {
   id: number
   email: string
+  isAdmin: boolean
 }
 
 type JwtPayload = {
   sub?: number
   email?: string
+  isAdmin?: boolean
   exp?: number
 }
 
@@ -30,6 +32,7 @@ export function getUserFromToken(token: string): AuthUser | null {
   return {
     id: payload.sub,
     email: payload.email,
+    isAdmin: payload.isAdmin === true,
   }
 }
 

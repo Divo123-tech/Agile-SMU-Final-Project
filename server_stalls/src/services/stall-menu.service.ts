@@ -53,36 +53,60 @@ function groupDishesByCategory(rows: DishRow[]): CategoryGroup[] {
     .map(([category, dishes]) => ({ category, dishes }));
 }
 
-export async function getStallMenu(stallId: number): Promise<StallMenuResponse> {
+async function loadStallMenu(
+  stallId: number,
+  stallWhere: string
+): Promise<StallMenuResponse> {
+  const [stallRes, dishRes] = await Promise.all([
+    pool.query<StallRow>(
+      `SELECT ${STALL_SELECT_COLUMNS}
+       FROM stalls WHERE id = $1 AND ${stallWhere} LIMIT 1`,
+      [stallId]
+    ),
+    pool.query<DishRow>("SELECT * FROM dishes WHERE stall_id = $1", [stallId]),
+  ]);
+
+  if (stallRes.rows.length === 0) {
+    throw new NotFoundError(`Stall with id ${stallId} was not found`);
+  }
+
+  const stall = await stallFromRow(stallRes.rows[0]);
+  if (!stall) {
+    throw new NotFoundError(`Stall with id ${stallId} was not found`);
+  }
+
+  return {
+    stall,
+    categories: groupDishesByCategory(dishRes.rows),
+  };
+}
+
+async function loadStallMenuSafe(
+  stallId: number,
+  stallWhere: string,
+  logLabel: string
+): Promise<StallMenuResponse> {
   try {
-    const [stallRes, dishRes] = await Promise.all([
-      pool.query<StallRow>(
-        `SELECT ${STALL_SELECT_COLUMNS}
-         FROM stalls WHERE id = $1 LIMIT 1`,
-        [stallId]
-      ),
-      pool.query<DishRow>("SELECT * FROM dishes WHERE stall_id = $1", [stallId]),
-    ]);
-
-    if (stallRes.rows.length === 0) {
-      throw new NotFoundError(`Stall with id ${stallId} was not found`);
-    }
-
-    const stall = await stallFromRow(stallRes.rows[0]);
-    if (!stall) {
-      throw new NotFoundError(`Stall with id ${stallId} was not found`);
-    }
-
-    return {
-      stall,
-      categories: groupDishesByCategory(dishRes.rows),
-    };
+    return await loadStallMenu(stallId, stallWhere);
   } catch (err) {
     if (err instanceof NotFoundError) {
       throw err;
     }
 
-    console.error(`getStallMenu failed for stallId=${stallId}:`, err);
+    console.error(`${logLabel} failed for stallId=${stallId}:`, err);
     throw new ServiceError("Unable to load stall menu. Please try again later.");
   }
+}
+
+export async function getStallMenu(stallId: number): Promise<StallMenuResponse> {
+  return loadStallMenuSafe(stallId, "status = 'approved'", "getStallMenu");
+}
+
+/** Menu for a pending stall during admin review (includes dishes). */
+export async function getAdminStallMenu(stallId: number): Promise<StallMenuResponse> {
+  return loadStallMenuSafe(
+    stallId,
+    "status = 'pending'",
+    "getAdminStallMenu"
+  );
 }

@@ -1,6 +1,6 @@
 /** Columns selected from stalls for API mapping. */
 export const STALL_SELECT_COLUMNS =
-  "id, name, owner, description, address, image_url, proof_of_ownership_url, updated_at";
+  "id, name, owner, description, address, image_url, proof_of_ownership_url, status, admin_notes, updated_at";
 
 export function stallUpdatedAtToIso(
   value: Date | string | null | undefined

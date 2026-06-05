@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { NotFoundError, ServiceError, ValidationError } from "../errors";
+import { notifyPendingStallCreated } from "../lib/admin-realtime";
 import { uploadStallFileToS3 } from "../lib/s3";
 import { getStallMenu } from "../services/stall-menu.service";
 import {
@@ -186,6 +187,10 @@ export async function createStallHandler(
       imageUrl,
       proofOfOwnershipUrl,
     });
+
+    if (stall.status === "pending") {
+      void notifyPendingStallCreated(stall.id);
+    }
 
     res.status(201).json(stall);
   } catch (err) {

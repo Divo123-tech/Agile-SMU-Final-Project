@@ -25,10 +25,13 @@ export type LoginResponse = {
     id: number
     email: string
     allergies: string[]
+    isAdmin: boolean
   }
 }
 
 export type AccountProfile = LoginResponse["account"]
+
+export type StallStatus = "pending" | "approved" | "rejected"
 
 export type Stall = {
   id: number
@@ -38,6 +41,17 @@ export type Stall = {
   address: string
   image: string
   proofOfOwnership: string
+  status: StallStatus
+  adminNotes: string | null
+}
+
+export type AdminStall = Stall & {
+  ownerEmail: string | null
+}
+
+export type PendingStallsResponse = {
+  count: number
+  stalls: AdminStall[]
 }
 
 export type CreateStallResponse = Stall
@@ -122,6 +136,49 @@ export async function getMyStalls(userId: number): Promise<MyStallsResponse> {
     `${STALLS_API_BASE_URL}/my-stalls/${userId}`,
   )
 
+  return data
+}
+
+/** GET /admin/stalls/pending — stalls awaiting approval (admin only). */
+export async function getPendingStalls(): Promise<PendingStallsResponse> {
+  const { data } = await axios.get<PendingStallsResponse>(
+    `${STALLS_API_BASE_URL}/admin/stalls/pending`,
+    { headers: withAuthHeader() },
+  )
+  return data
+}
+
+/** GET /admin/stalls/:id — full stall details for review (admin only). */
+export async function getAdminStall(stallId: number): Promise<AdminStall> {
+  const { data } = await axios.get<AdminStall>(
+    `${STALLS_API_BASE_URL}/admin/stalls/${stallId}`,
+    { headers: withAuthHeader() },
+  )
+  return data
+}
+
+/** GET /admin/stalls/:id/menu — dishes for a pending stall (admin only). */
+export async function getAdminStallMenu(
+  stallId: number,
+): Promise<StallMenuResponse> {
+  const { data } = await axios.get<StallMenuResponse>(
+    `${STALLS_API_BASE_URL}/admin/stalls/${stallId}/menu`,
+    { headers: withAuthHeader() },
+  )
+  return data
+}
+
+/** PATCH /admin/stalls/:id/status — approve or reject a pending stall. */
+export async function reviewStall(
+  stallId: number,
+  status: "approved" | "rejected",
+  adminNotes?: string,
+): Promise<AdminStall> {
+  const { data } = await axios.patch<AdminStall>(
+    `${STALLS_API_BASE_URL}/admin/stalls/${stallId}/status`,
+    { status, ...(adminNotes !== undefined ? { adminNotes } : {}) },
+    { headers: withAuthHeader({ "Content-Type": "application/json" }) },
+  )
   return data
 }
 

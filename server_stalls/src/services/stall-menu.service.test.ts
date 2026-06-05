@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pool } from "../db";
 import { NotFoundError } from "../errors";
-import { getStallMenu } from "./stall-menu.service";
+import { getAdminStallMenu, getStallMenu } from "./stall-menu.service";
 
 vi.mock("../db", () => ({
   pool: {
@@ -23,6 +23,7 @@ const sampleStallRow = {
   image_url: "https://example.com/stall.jpg",
   address: "Food Court Level 2",
   proof_of_ownership_url: "https://example.com/proof.pdf",
+  status: "approved",
   updated_at: "2026-05-23T10:00:00.000Z",
 };
 
@@ -150,5 +151,29 @@ describe("getStallMenu", () => {
     });
 
     consoleSpy.mockRestore();
+  });
+});
+
+describe("getAdminStallMenu", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns menu for a pending stall", async () => {
+    mockQueries(
+      [{ ...sampleStallRow, status: "pending" }],
+      [padThaiRow, springRollRow],
+    );
+
+    const result = await getAdminStallMenu(101);
+
+    expect(result.categories).toHaveLength(2);
+    expect(result.stall?.name).toBe("The Golden Wok");
+  });
+
+  it("throws NotFoundError when the stall is not pending", async () => {
+    mockQueries([], [padThaiRow]);
+
+    await expect(getAdminStallMenu(101)).rejects.toThrow(NotFoundError);
   });
 });

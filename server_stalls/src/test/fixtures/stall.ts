@@ -29,6 +29,8 @@ export const stallResponse: StallResponse = {
   address: createStallBody.address,
   image: createStallInput.imageUrl,
   proofOfOwnership: createStallInput.proofOfOwnershipUrl,
+  status: "pending",
+  adminNotes: null,
   updatedAt: "2026-05-23T10:00:00.000Z",
 };
 

@@ -139,7 +139,7 @@ export default function CreateStallPage() {
     setIsSubmitting(true)
 
     try {
-      const stall = await createStall({
+      await createStall({
         name: name.trim(),
         owner: user.id,
         description: description.trim(),
@@ -148,8 +148,8 @@ export default function CreateStallPage() {
         proofOfOwnership,
       })
 
-      toast.success("Stall created successfully!")
-      navigate(`/stall/${stall.id}`)
+      toast.success("Stall submitted! An admin will review it before it goes live.")
+      navigate("/my-stalls")
     } catch (err: unknown) {
       const message =
         axios.isAxiosError(err) && err.response?.data
@@ -170,7 +170,8 @@ export default function CreateStallPage() {
 
       <main className="max-w-lg mx-auto px-4 py-6">
         <p className="text-sm text-muted-foreground mb-6">
-          Register your stall with basic details and ownership verification.
+          Register your stall with basic details and ownership verification. Your
+          submission will be reviewed by an admin before it appears on the home page.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">

@@ -11,7 +11,26 @@ import {
   Trash2,
 } from "lucide-react"
 import { PageHeader } from "@/components/page-header"
-import { deleteStall, getMyStalls, type MyStallsResponse, type Stall } from "@/lib/api"
+import {
+  deleteStall,
+  getMyStalls,
+  type MyStallsResponse,
+  type Stall,
+  type StallStatus,
+} from "@/lib/api"
+import { cn } from "@/lib/utils"
+
+function statusLabel(status: StallStatus): string {
+  if (status === "approved") return "Approved"
+  if (status === "rejected") return "Rejected"
+  return "Pending review"
+}
+
+function statusClass(status: StallStatus): string {
+  if (status === "approved") return "bg-emerald-100 text-emerald-800"
+  if (status === "rejected") return "bg-destructive/10 text-destructive"
+  return "bg-amber-100 text-amber-900"
+}
 import { useAuth } from "@/hooks/useAuth"
 import { Button } from "@/components/ui/button"
 function StallListItem({
@@ -65,7 +84,13 @@ function StallListItem({
   return (
     <li>
       <div className="flex gap-3 rounded-xl border border-border bg-card p-4">
-        <Link to={`/stall/${stall.id}`} className="flex gap-3 min-w-0 flex-1">
+        <Link
+          to={stall.status === "approved" ? `/stall/${stall.id}` : "#"}
+          onClick={(e) => {
+            if (stall.status !== "approved") e.preventDefault()
+          }}
+          className="flex gap-3 min-w-0 flex-1"
+        >
           {stall.image ? (
             <img
               src={stall.image}
@@ -78,13 +103,28 @@ function StallListItem({
             </div>
           )}
           <div className="min-w-0 flex-1">
-            <p className="font-medium text-foreground truncate">{stall.name}</p>
+            <div className="flex items-center gap-2 min-w-0">
+              <p className="font-medium text-foreground truncate">{stall.name}</p>
+              <span
+                className={cn(
+                  "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+                  statusClass(stall.status),
+                )}
+              >
+                {statusLabel(stall.status)}
+              </span>
+            </div>
             <p className="text-sm text-muted-foreground line-clamp-2 mt-0.5">
               {stall.description}
             </p>
             {stall.address && (
               <p className="text-xs text-muted-foreground mt-1 truncate">
                 {stall.address}
+              </p>
+            )}
+            {stall.status === "rejected" && stall.adminNotes && (
+              <p className="text-xs text-destructive mt-2 line-clamp-3">
+                <span className="font-medium">Admin note:</span> {stall.adminNotes}
               </p>
             )}
           </div>

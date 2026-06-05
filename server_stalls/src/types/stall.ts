@@ -1,3 +1,11 @@
+export type StallStatus = "pending" | "approved" | "rejected";
+
+export const STALL_STATUSES: StallStatus[] = [
+  "pending",
+  "approved",
+  "rejected",
+];
+
 export type CreateStallInput = {
   name: string;
   owner: number;
@@ -15,6 +23,8 @@ export type StallResponse = {
   address: string;
   image: string;
   proofOfOwnership: string;
+  status: StallStatus;
+  adminNotes: string | null;
   updatedAt: string | null;
 };
 
@@ -26,7 +36,18 @@ export type StallRow = {
   address: string | null;
   image_url: string | null;
   proof_of_ownership_url: string | null;
+  status: StallStatus;
+  admin_notes: string | null;
   updated_at?: Date | string | null;
+};
+
+export type AdminStallResponse = StallResponse & {
+  ownerEmail: string | null;
+};
+
+export type PendingStallsResponse = {
+  count: number;
+  stalls: AdminStallResponse[];
 };
 
 export type MyStallsResponse = {

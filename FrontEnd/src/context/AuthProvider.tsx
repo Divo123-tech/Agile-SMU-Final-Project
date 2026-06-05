@@ -45,6 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AuthContextValue>(
     () => ({
       isLoggedIn: session !== null,
+      isAdmin: session?.user.isAdmin ?? false,
       user: session?.user ?? null,
       login,
       logout,

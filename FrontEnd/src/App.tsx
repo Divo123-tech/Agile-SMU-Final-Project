@@ -8,6 +8,7 @@ import EditStallPage from './pages/Edit-Stall'
 import MyStallsPage from './pages/My-Stalls'
 import MyAccountPage from './pages/My-Account'
 import MyDishesPage from './pages/My-Dishes'
+import AdminStallsPage from './pages/Admin-Stalls'
 import StallQRPage from './pages/Stall-QR'
 import LoginPage from './pages/Login'
 import { Toaster } from '@/components/ui/sonner'
@@ -36,6 +37,7 @@ function App() {
         <Route path="/my-stalls" element={<MyStallsPage />} />
         <Route path="/my-account" element={<MyAccountPage />} />
         <Route path="/my-dishes" element={<MyDishesPage />} />
+        <Route path="/admin/stalls" element={<AdminStallsPage />} />
         <Route path="/stall-qr/:id" element={<StallQRPage />} />
         <Route path="/sign-up" element={<CreateAccountPage />} />
         <Route path="/login" element={<LoginPage />} />
