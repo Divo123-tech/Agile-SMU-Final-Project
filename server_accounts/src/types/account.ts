@@ -12,6 +12,7 @@ export type AccountResponse = {
   id: number;
   email: string;
   allergies: string[];
+  isAdmin: boolean;
 };
 
 export type LoginResponse = {
@@ -24,11 +25,13 @@ export type AccountRow = {
   email: string;
   password_hash: string;
   allergies: string[] | null;
+  is_admin: boolean;
 };
 
 export type AccessTokenPayload = {
   sub: number;
   email: string;
+  isAdmin: boolean;
 };
 
 export type UpdateAccountInput = {

@@ -4,12 +4,16 @@ import {
   listMyDishesHandler,
   removeBookmarkHandler,
 } from "../controllers/bookmark.controller";
-import { requireAuth } from "../middleware/requireAuth";
+import { asAuthHandler, requireAuth } from "../middleware/requireAuth";
 
 const router = Router();
 
-router.get("/my-dishes", requireAuth, listMyDishesHandler);
-router.post("/my-dishes/:dishId", requireAuth, addBookmarkHandler);
-router.delete("/my-dishes/:dishId", requireAuth, removeBookmarkHandler);
+router.get("/my-dishes", requireAuth, asAuthHandler(listMyDishesHandler));
+router.post("/my-dishes/:dishId", requireAuth, asAuthHandler(addBookmarkHandler));
+router.delete(
+  "/my-dishes/:dishId",
+  requireAuth,
+  asAuthHandler(removeBookmarkHandler)
+);
 
 export default router;

@@ -41,6 +41,7 @@ describe("Sign-up service", () => {
       id: accountResponse.id,
       email: accountResponse.email,
       allergies: [],
+      isAdmin: false,
     });
   });
 

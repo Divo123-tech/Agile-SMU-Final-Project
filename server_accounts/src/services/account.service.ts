@@ -21,13 +21,14 @@ import type {
 const BCRYPT_ROUNDS = 10;
 
 const ACCOUNT_SELECT =
-  "SELECT id, email, password_hash, allergies FROM accounts WHERE id = $1 LIMIT 1";
+  "SELECT id, email, password_hash, allergies, is_admin FROM accounts WHERE id = $1 LIMIT 1";
 
 function accountRowToResponse(row: AccountRow): AccountResponse {
   return {
     id: row.id,
     email: row.email,
     allergies: normalizeAllergies(row.allergies ?? []),
+    isAdmin: row.is_admin,
   };
 }
 
@@ -132,6 +133,7 @@ export async function updateAccount(
     const token = signAccessToken({
       sub: updated.id,
       email: updated.email,
+      isAdmin: updated.isAdmin,
     });
 
     return { token, account: updated };

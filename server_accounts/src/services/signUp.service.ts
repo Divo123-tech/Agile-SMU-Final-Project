@@ -10,6 +10,7 @@ function accountRowToResponse(row: AccountRow): AccountResponse {
     id: row.id,
     email: row.email,
     allergies: [],
+    isAdmin: row.is_admin ?? false,
   };
 }
 

@@ -17,6 +17,18 @@ export function signAccessToken(payload: AccessTokenPayload): string {
   return jwt.sign(payload, getJwtSecret(), options);
 }
 
+function parseSubject(sub: unknown): number {
+  if (typeof sub === "number" && Number.isInteger(sub) && sub > 0) {
+    return sub;
+  }
+
+  if (typeof sub === "string" && /^\d+$/.test(sub)) {
+    return Number(sub);
+  }
+
+  throw new Error("Invalid token payload");
+}
+
 export function verifyAccessToken(token: string): AccessTokenPayload {
   const decoded = jwt.verify(token, getJwtSecret());
 
@@ -24,11 +36,16 @@ export function verifyAccessToken(token: string): AccessTokenPayload {
     throw new Error("Invalid token payload");
   }
 
-  const { sub, email } = decoded as AccessTokenPayload;
+  const payload = decoded as Record<string, unknown>;
+  const { sub, email, isAdmin } = payload;
 
-  if (typeof sub !== "number" || typeof email !== "string") {
+  if (typeof email !== "string") {
     throw new Error("Invalid token payload");
   }
 
-  return { sub, email };
+  return {
+    sub: parseSubject(sub),
+    email,
+    isAdmin: isAdmin === true,
+  };
 }

@@ -12,12 +12,14 @@ export const accountRow: AccountRow = {
   email: "user@example.com",
   password_hash: "$2b$10$hashedvalue",
   allergies: ["peanuts", "soy"],
+  is_admin: false,
 };
 
 export const accountResponse: AccountResponse = {
   id: 1,
   email: "user@example.com",
   allergies: ["soy"],
+  isAdmin: false,
 };
 
 export const loginResponse: LoginResponse = {

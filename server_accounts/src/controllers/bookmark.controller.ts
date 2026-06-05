@@ -11,8 +11,8 @@ import {
   removeBookmark,
 } from "../services/bookmark.service";
 
-function parseDishIdParam(raw: string): number {
-  const dishId = Number(raw);
+function parseDishIdParam(raw: string | string[]): number {
+  const dishId = Number(Array.isArray(raw) ? raw[0] : raw);
 
   if (!Number.isInteger(dishId) || dishId <= 0) {
     throw new ValidationError("dishId must be a positive integer");

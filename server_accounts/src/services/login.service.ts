@@ -8,7 +8,7 @@ import type { AccountRow, LoginInput, LoginResponse } from "../types/account";
 export async function login(input: LoginInput): Promise<LoginResponse> {
   try {
     const { rows } = await pool.query<AccountRow>(
-      "SELECT id, email, password_hash, allergies FROM accounts WHERE email = $1 LIMIT 1",
+      "SELECT id, email, password_hash, allergies, is_admin FROM accounts WHERE email = $1 LIMIT 1",
       [input.email]
     );
 
@@ -26,9 +26,11 @@ export async function login(input: LoginInput): Promise<LoginResponse> {
       throw new UnauthorizedError("Invalid email or password");
     }
 
+    const isAdmin = account.is_admin;
     const token = signAccessToken({
       sub: account.id,
       email: account.email,
+      isAdmin,
     });
 
     return {
@@ -37,6 +39,7 @@ export async function login(input: LoginInput): Promise<LoginResponse> {
         id: account.id,
         email: account.email,
         allergies: normalizeAllergies(account.allergies ?? []),
+        isAdmin,
       },
     };
   } catch (err) {

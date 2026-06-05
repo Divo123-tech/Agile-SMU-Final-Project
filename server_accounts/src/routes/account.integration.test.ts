@@ -24,7 +24,7 @@ describe("Account API", () => {
   let token: string;
 
   beforeAll(() => {
-    token = signAccessToken({ sub: 1, email: "user@example.com" });
+    token = signAccessToken({ sub: 1, email: "user@example.com", isAdmin: true });
   });
 
   beforeEach(() => {

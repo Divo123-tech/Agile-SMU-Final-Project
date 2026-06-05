@@ -1,10 +1,21 @@
-import type { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, RequestHandler, Response } from "express";
 import { verifyAccessToken } from "../lib/jwt";
 
 export type AuthenticatedRequest = Request & {
   accountId: number;
   accountEmail: string;
 };
+
+/** Bridges AuthenticatedRequest handlers to Express Router typing. */
+export function asAuthHandler(
+  handler: (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ) => void | Promise<void>
+): RequestHandler {
+  return handler as RequestHandler;
+}
 
 export function requireAuth(
   req: Request,
