@@ -6,36 +6,36 @@ import {
   reviewStallHandler,
 } from "../controllers/admin.controller";
 import { requireAdmin } from "../middleware/requireAdmin";
-import { requireAuth } from "../middleware/requireAuth";
+import { asAuthHandler, requireAuth } from "../middleware/requireAuth";
 
 const router = Router();
 
 router.get(
   "/admin/stalls/pending",
   requireAuth,
-  requireAdmin,
-  listPendingStallsHandler
+  asAuthHandler(requireAdmin),
+  asAuthHandler(listPendingStallsHandler)
 );
 
 router.get(
   "/admin/stalls/:id/menu",
   requireAuth,
-  requireAdmin,
-  getPendingStallMenuHandler
+  asAuthHandler(requireAdmin),
+  asAuthHandler(getPendingStallMenuHandler)
 );
 
 router.get(
   "/admin/stalls/:id",
   requireAuth,
-  requireAdmin,
-  getPendingStallHandler
+  asAuthHandler(requireAdmin),
+  asAuthHandler(getPendingStallHandler)
 );
 
 router.patch(
   "/admin/stalls/:id/status",
   requireAuth,
-  requireAdmin,
-  reviewStallHandler
+  asAuthHandler(requireAdmin),
+  asAuthHandler(reviewStallHandler)
 );
 
 export default router;

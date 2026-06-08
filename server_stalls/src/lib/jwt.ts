@@ -1,4 +1,4 @@
-import jwt, { type SignOptions } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
 export type AccessTokenPayload = {
   sub: number;
@@ -33,7 +33,8 @@ export function verifyAccessToken(token: string): AccessTokenPayload {
     throw new Error("Invalid token payload");
   }
 
-  const { sub, email, isAdmin } = decoded as AccessTokenPayload;
+  const payload = decoded as Record<string, unknown>;
+  const { sub, email, isAdmin } = payload;
 
   if (typeof email !== "string") {
     throw new Error("Invalid token payload");

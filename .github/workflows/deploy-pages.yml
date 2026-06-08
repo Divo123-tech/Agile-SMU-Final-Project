@@ -1,6 +1,8 @@
 # Deploy FrontEnd to GitHub Pages on push to main.
 # Enable once: Repo Settings → Pages → Source: GitHub Actions
-# Set repo variable: VITE_API_URL = your public HTTPS gateway URL
+#
+# Optional: Settings → Secrets and variables → Actions → Variables
+#   VITE_API_URL = your public HTTPS gateway (overrides the default below)
 
 name: Deploy GitHub Pages
 
@@ -40,11 +42,15 @@ jobs:
         working-directory: FrontEnd
         env:
           VITE_BASE_PATH: /Agile-SMU-Final-Project/
+          # Override via repo variable VITE_API_URL when your gateway is deployed publicly
           VITE_API_URL: ${{ vars.VITE_API_URL }}
+          DEFAULT_API_URL: http://localhost:5000
         run: |
           if [ -z "$VITE_API_URL" ]; then
-            echo "::error::Set repository variable VITE_API_URL (Settings → Actions → Variables)"
-            exit 1
+            export VITE_API_URL="$DEFAULT_API_URL"
+            echo "::warning::VITE_API_URL not set — using $DEFAULT_API_URL. API calls from GitHub Pages will not work until you add repository variable VITE_API_URL with your public gateway URL."
+          else
+            echo "Building with VITE_API_URL=$VITE_API_URL"
           fi
           npm ci
           npm run build
