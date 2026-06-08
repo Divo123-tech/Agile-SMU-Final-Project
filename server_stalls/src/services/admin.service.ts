@@ -1,7 +1,10 @@
 import { pool } from "../db";
 import { NotFoundError, ServiceError, ValidationError } from "../errors";
 import { stallUpdatedAtToIso } from "../lib/stall-row";
-import { resolveImageUrlForClient } from "../lib/s3";
+import {
+  resolveImageUrlForClient,
+  resolveStallFileUrlForClient,
+} from "../lib/s3";
 import type {
   AdminStallResponse,
   PendingStallsResponse,
@@ -35,7 +38,9 @@ async function adminStallRowToResponse(
     owner: row.owner,
     address: row.address?.trim() ?? "",
     image: await resolveImageUrlForClient(imageUrl),
-    proofOfOwnership: row.proof_of_ownership_url?.trim() ?? "",
+    proofOfOwnership: await resolveStallFileUrlForClient(
+      row.proof_of_ownership_url?.trim() ?? ""
+    ),
     status: row.status,
     adminNotes: row.admin_notes?.trim() || null,
     updatedAt: stallUpdatedAtToIso(row.updated_at),

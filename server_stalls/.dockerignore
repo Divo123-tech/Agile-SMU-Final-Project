@@ -1,0 +1,16 @@
+node_modules
+dist
+npm-debug.log*
+.env
+.env.*
+!.env.example
+coverage
+.git
+.gitignore
+*.md
+Dockerfile
+.dockerignore
+**/*.test.ts
+**/*.integration.test.ts
+vitest.config.*
+sql

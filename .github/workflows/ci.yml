@@ -22,6 +22,7 @@ jobs:
           - server_dishes
           - server_stalls
           - server_accounts
+          - gateway
     defaults:
       run:
         working-directory: ${{ matrix.service }}
@@ -45,10 +46,9 @@ jobs:
       run:
         working-directory: FrontEnd
     env:
-      # Required at build time (see FrontEnd/src/lib/api.ts)
-      VITE_DISHES_URL: http://localhost:3000
-      VITE_ACCOUNTS_URL: http://localhost:4001
-      VITE_STALLS_URL: http://localhost:4002
+      # CI compile check (not GitHub Pages paths)
+      VITE_BASE_PATH: /
+      VITE_API_URL: http://localhost:5000
     steps:
       - uses: actions/checkout@v4
 

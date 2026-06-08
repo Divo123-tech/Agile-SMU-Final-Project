@@ -11,6 +11,7 @@ vi.mock("../db", () => ({
 
 vi.mock("../lib/s3", () => ({
   resolveImageUrlForClient: vi.fn((url: string) => Promise.resolve(url)),
+  resolveStallFileUrlForClient: vi.fn((url: string) => Promise.resolve(url)),
 }));
 
 const mockQuery = vi.mocked(pool.query);

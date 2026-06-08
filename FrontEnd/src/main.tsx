@@ -6,10 +6,13 @@ import { AuthProvider } from '@/context/AuthProvider'
 import './index.css'
 import App from './App.tsx'
 
+/** Must match Vite `base` (import.meta.env.BASE_URL includes trailing slash). */
+const routerBasename = import.meta.env.BASE_URL.replace(/\/$/, '')
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-      <BrowserRouter>
+      <BrowserRouter basename={routerBasename || undefined}>
         <AuthProvider>
           <App />
         </AuthProvider>

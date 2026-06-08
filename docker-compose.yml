@@ -1,0 +1,90 @@
+# Run the full stack: docker compose up --build
+# App UI: http://localhost:8080  |  API gateway: http://localhost:5000
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: AgileSMU
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d AgileSMU"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  server_accounts:
+    build: ./server_accounts
+    restart: unless-stopped
+    environment:
+      PORT: 4001
+      DATABASE_URL: postgresql://postgres:password@db:5432/AgileSMU
+      PGSSL: "false"
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-in-production}
+      JWT_EXPIRES_IN: 7d
+    depends_on:
+      db:
+        condition: service_healthy
+
+  server_dishes:
+    build: ./server_dishes
+    restart: unless-stopped
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgresql://postgres:password@db:5432/AgileSMU
+      PGSSL: "false"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  server_stalls:
+    build: ./server_stalls
+    restart: unless-stopped
+    environment:
+      PORT: 4002
+      DATABASE_URL: postgresql://postgres:password@db:5432/AgileSMU
+      PGSSL: "false"
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-in-production}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_REGION: ${AWS_REGION:-ap-southeast-1}
+      S3_BUCKET: ${S3_BUCKET:-}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  gateway:
+    build: ./gateway
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      PORT: 5000
+      ACCOUNTS_URL: http://server_accounts:4001
+      DISHES_URL: http://server_dishes:3000
+      STALLS_URL: http://server_stalls:4002
+      CORS_ORIGIN: http://localhost:5173,http://localhost:8080
+    depends_on:
+      - server_accounts
+      - server_dishes
+      - server_stalls
+
+  frontend:
+    build:
+      context: ./FrontEnd
+      args:
+        VITE_API_URL: http://localhost:5000
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - gateway
+
+volumes:
+  pgdata:

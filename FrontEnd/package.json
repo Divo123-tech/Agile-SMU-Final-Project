@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "build": "tsc -b && vite build && node scripts/gh-pages-404.mjs",
+    "preview": "vite preview",
+    "preview:pages": "vite preview --base /Agile-SMU-Final-Project/",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.2.8",

@@ -1,21 +1,31 @@
 import axios from "axios"
 
-function requireEnv(name: keyof ImportMetaEnv): string {
-  const value = import.meta.env[name]
-  if (!value) {
-    throw new Error(`${name} is not set. Add it to your .env file.`)
-  }
-  return value.replace(/\/$/, "")
+function stripTrailingSlash(url: string): string {
+  return url.replace(/\/$/, "")
 }
 
-/** server_dishes API base URL (no trailing slash). */
-export const API_BASE_URL = requireEnv("VITE_DISHES_URL")
+function envUrl(name: keyof ImportMetaEnv): string | undefined {
+  const value = import.meta.env[name]
+  return value ? stripTrailingSlash(value) : undefined
+}
 
-/** server_accounts API base URL (no trailing slash). */
-export const ACCOUNTS_API_BASE_URL = requireEnv("VITE_ACCOUNTS_URL")
+const gatewayUrl = envUrl("VITE_API_URL")
 
-/** server_stalls API base URL (no trailing slash). */
-export const STALLS_API_BASE_URL = requireEnv("VITE_STALLS_URL")
+/** Dishes API — gateway or legacy VITE_DISHES_URL. */
+export const API_BASE_URL =
+  gatewayUrl ?? envUrl("VITE_DISHES_URL") ?? missingEnv("VITE_API_URL or VITE_DISHES_URL")
+
+/** Accounts API — gateway or legacy VITE_ACCOUNTS_URL. */
+export const ACCOUNTS_API_BASE_URL =
+  gatewayUrl ?? envUrl("VITE_ACCOUNTS_URL") ?? missingEnv("VITE_API_URL or VITE_ACCOUNTS_URL")
+
+/** Stalls API — gateway or legacy VITE_STALLS_URL. */
+export const STALLS_API_BASE_URL =
+  gatewayUrl ?? envUrl("VITE_STALLS_URL") ?? missingEnv("VITE_API_URL or VITE_STALLS_URL")
+
+function missingEnv(names: string): never {
+  throw new Error(`${names} is not set. Add to FrontEnd/.env (gateway: VITE_API_URL=http://localhost:5000).`)
+}
 
 const TOKEN_STORAGE_KEY = "token"
 

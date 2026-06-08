@@ -94,11 +94,17 @@ export async function getSignedReadUrl(key: string): Promise<string> {
   );
 }
 
+function isPrivateStallObjectKey(key: string): boolean {
+  return key.startsWith("stalls/photos/") || key.startsWith("stalls/proofs/");
+}
+
 /**
- * Returns a URL the browser can load for stall photos.
+ * Returns a URL the browser can load for stall photos or proof documents.
  * Signs private S3 objects; leaves other URLs unchanged.
  */
-export async function resolveImageUrlForClient(storedUrl: string): Promise<string> {
+export async function resolveStallFileUrlForClient(
+  storedUrl: string
+): Promise<string> {
   const trimmed = storedUrl.trim();
   if (!trimmed) return "";
 
@@ -107,7 +113,7 @@ export async function resolveImageUrlForClient(storedUrl: string): Promise<strin
   }
 
   const key = getObjectKeyFromStoredUrl(trimmed);
-  if (!key?.startsWith("stalls/photos/")) {
+  if (!key || !isPrivateStallObjectKey(key)) {
     return trimmed;
   }
 
@@ -117,6 +123,11 @@ export async function resolveImageUrlForClient(storedUrl: string): Promise<strin
     console.error(`Failed to sign S3 URL for key=${key}:`, err);
     return trimmed;
   }
+}
+
+/** @deprecated Use resolveStallFileUrlForClient — kept for existing imports. */
+export async function resolveImageUrlForClient(storedUrl: string): Promise<string> {
+  return resolveStallFileUrlForClient(storedUrl);
 }
 
 export async function uploadStallFileToS3(
@@ -143,12 +154,7 @@ export async function uploadStallFileToS3(
     );
 
     const storedUrl = buildPublicUrl(key);
-
-    if (folder === "photos") {
-      return resolveImageUrlForClient(storedUrl);
-    }
-
-    return storedUrl;
+    return resolveStallFileUrlForClient(storedUrl);
   } catch (err) {
     console.error(`S3 upload failed for key=${key}:`, err);
     throw new ServiceError("Unable to upload file. Please try again later.");
