@@ -23,6 +23,15 @@ export const ACCOUNTS_API_BASE_URL =
 export const STALLS_API_BASE_URL =
   gatewayUrl ?? envUrl("VITE_STALLS_URL") ?? missingEnv("VITE_API_URL or VITE_STALLS_URL")
 
+/** Stable URL that redirects to a fresh presigned S3 read URL (pasteable in a browser tab). */
+export function stallImageUrl(stallId: number): string {
+  return `${STALLS_API_BASE_URL}/stalls/${stallId}/image`
+}
+
+export function stallProofUrl(stallId: number): string {
+  return `${STALLS_API_BASE_URL}/stalls/${stallId}/proof-of-ownership`
+}
+
 function missingEnv(names: string): never {
   throw new Error(`${names} is not set. Add to FrontEnd/.env (gateway: VITE_API_URL=http://localhost:5000).`)
 }

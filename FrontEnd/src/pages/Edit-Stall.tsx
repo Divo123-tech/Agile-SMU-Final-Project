@@ -11,7 +11,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { FileCheck, ImagePlus, Plus, Save } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
-import { getStall, updateStall } from "@/lib/api";
+import { getStall, stallImageUrl, updateStall } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -175,7 +175,7 @@ export default function EditStallPage() {
                 setName(stall.name);
                 setDescription(stall.description);
                 setAddress(stall.address);
-                setExistingImageUrl(stall.image || null);
+                setExistingImageUrl(stall.image ? stallImageUrl(stallId) : null);
             } catch (err: unknown) {
                 if (cancelled) return;
                 const message =

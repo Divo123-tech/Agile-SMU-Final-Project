@@ -59,17 +59,28 @@ export function buildPublicUrl(key: string): string {
   return `https://${bucket}.s3.${region}.amazonaws.com/${key}`;
 }
 
-/** Extract S3 object key from a URL stored in the database. */
+/** Extract S3 object key from a canonical or presigned URL stored in the database. */
 export function getObjectKeyFromStoredUrl(url: string): string | null {
   const trimmed = url.trim();
   if (!trimmed) return null;
 
+  if (trimmed.startsWith("stalls/")) {
+    return trimmed;
+  }
+
   try {
     const parsed = new URL(trimmed);
-    const key = decodeURIComponent(parsed.pathname.replace(/^\//, ""));
+    let key = decodeURIComponent(parsed.pathname.replace(/^\//, ""));
+
+    const bucket = process.env.S3_BUCKET;
+    if (bucket && key.startsWith(`${bucket}/`)) {
+      key = key.slice(bucket.length + 1);
+    }
+
     if (key.startsWith("stalls/")) {
       return key;
     }
+
     return null;
   } catch {
     return null;
@@ -82,13 +93,14 @@ function signedUrlExpiresIn(): number {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 86400;
 }
 
-/** Temporary read URL for private S3 objects (used for stall photos in the browser). */
+/** Temporary read URL for private S3 objects. */
 export async function getSignedReadUrl(key: string): Promise<string> {
   return getSignedUrl(
     getS3Client(),
     new GetObjectCommand({
       Bucket: getBucket(),
       Key: key,
+      ResponseContentDisposition: "inline",
     }),
     { expiresIn: signedUrlExpiresIn() }
   );
@@ -154,7 +166,8 @@ export async function uploadStallFileToS3(
     );
 
     const storedUrl = buildPublicUrl(key);
-    return resolveStallFileUrlForClient(storedUrl);
+    // Store canonical S3 URLs in the database; presign when serving to clients.
+    return storedUrl;
   } catch (err) {
     console.error(`S3 upload failed for key=${key}:`, err);
     throw new ServiceError("Unable to upload file. Please try again later.");

@@ -8,6 +8,7 @@ import {
   getAccount,
   getMyDishes,
   getStallMenu,
+  stallImageUrl,
   unbookmarkDish,
 } from "@/lib/api"
 import { parseAllergenTypes } from "@/lib/allergens"
@@ -263,7 +264,7 @@ function Stall() {
         stallName={stall.name}
         stallDescription={stall.description}
         stallAddress={stall.address}
-        stallImage={stall.image}
+        stallImage={stall.image ? stallImageUrl(Number(id)) : undefined}
         lastUpdated={
           stall.updatedAt ? formatLastUpdated(stall.updatedAt) : null
         }

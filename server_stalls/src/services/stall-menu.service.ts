@@ -1,6 +1,7 @@
 import { pool } from "../db";
 import { NotFoundError, ServiceError } from "../errors";
 import { STALL_SELECT_COLUMNS, stallUpdatedAtToIso } from "../lib/stall-row";
+import { buildStallMediaClientUrl } from "../lib/stall-media-urls";
 import { resolveImageUrlForClient } from "../lib/s3";
 import type { StallRow } from "../types/stall";
 import type {
@@ -19,7 +20,9 @@ async function stallFromRow(row: StallRow | undefined): Promise<StallMenuOut | n
   return {
     name: String(name),
     description: row.description?.trim() ?? "",
-    image: await resolveImageUrlForClient(imageUrl),
+    image:
+      (imageUrl ? buildStallMediaClientUrl(row.id, "image") : null) ??
+      (await resolveImageUrlForClient(imageUrl)),
     address: row.address?.trim() ?? "",
     owner: row.owner,
     updatedAt: stallUpdatedAtToIso(row.updated_at),

@@ -19,6 +19,8 @@ import {
   getAdminStallMenu,
   getPendingStalls,
   reviewStall,
+  stallImageUrl,
+  stallProofUrl,
   type AdminStall,
   type StallMenuCategory,
   type StallMenuDish,
@@ -349,7 +351,7 @@ export default function AdminStallsPage() {
                       </p>
                       {selected.image ? (
                         <img
-                          src={selected.image}
+                          src={stallImageUrl(selected.id)}
                           alt=""
                           className="w-full max-h-48 rounded-xl border border-border object-cover"
                         />
@@ -365,7 +367,7 @@ export default function AdminStallsPage() {
                       </p>
                       {selected.proofOfOwnership ? (
                         <a
-                          href={selected.proofOfOwnership}
+                          href={stallProofUrl(selected.id)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80"

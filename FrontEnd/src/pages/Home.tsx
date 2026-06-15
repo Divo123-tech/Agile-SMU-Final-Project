@@ -3,7 +3,7 @@ import { Link } from "react-router-dom"
 import axios from "axios"
 import { Search, Store } from "lucide-react"
 import { SiteHeader } from "@/components/site-header"
-import { getStalls, type Stall } from "@/lib/api"
+import { getStalls, stallImageUrl, type Stall } from "@/lib/api"
 import { useAuth } from "@/hooks/useAuth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -122,7 +122,7 @@ function Home() {
                   >
                     {stall.image ? (
                       <img
-                        src={stall.image}
+                        src={stallImageUrl(stall.id)}
                         alt=""
                         className="size-14 shrink-0 rounded-lg object-cover bg-muted"
                       />

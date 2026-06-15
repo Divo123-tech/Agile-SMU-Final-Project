@@ -7,6 +7,8 @@ import {
   getStallsHandler,
   getStallByIdHandler,
   getStallMenuHandler,
+  redirectStallImageHandler,
+  redirectStallProofHandler,
   updateStallHandler,
 } from "../controllers/stall.controller";
 import { uploadStallFiles } from "../middleware/upload";
@@ -18,6 +20,10 @@ router.get("/my-stalls/:userId", getMyStallsHandler);
 router.get("/stall/:id", getStallMenuHandler);
 
 router.get("/stalls", getStallsHandler);
+
+router.get("/stalls/:id/image", redirectStallImageHandler);
+
+router.get("/stalls/:id/proof-of-ownership", redirectStallProofHandler);
 
 router.get("/stalls/:id", getStallByIdHandler);
 

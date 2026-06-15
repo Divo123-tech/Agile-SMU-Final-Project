@@ -1,6 +1,7 @@
 import { pool } from "../db";
 import { NotFoundError, ServiceError, ValidationError } from "../errors";
 import { stallUpdatedAtToIso } from "../lib/stall-row";
+import { buildStallMediaClientUrl } from "../lib/stall-media-urls";
 import {
   resolveImageUrlForClient,
   resolveStallFileUrlForClient,
@@ -30,6 +31,7 @@ async function adminStallRowToResponse(
   row: AdminStallRow
 ): Promise<AdminStallResponse> {
   const imageUrl = row.image_url?.trim() ?? "";
+  const proofUrl = row.proof_of_ownership_url?.trim() ?? "";
 
   return {
     id: row.id,
@@ -37,10 +39,12 @@ async function adminStallRowToResponse(
     description: row.description?.trim() ?? "",
     owner: row.owner,
     address: row.address?.trim() ?? "",
-    image: await resolveImageUrlForClient(imageUrl),
-    proofOfOwnership: await resolveStallFileUrlForClient(
-      row.proof_of_ownership_url?.trim() ?? ""
-    ),
+    image:
+      (imageUrl ? buildStallMediaClientUrl(row.id, "image") : null) ??
+      (await resolveImageUrlForClient(imageUrl)),
+    proofOfOwnership:
+      (proofUrl ? buildStallMediaClientUrl(row.id, "proof") : null) ??
+      (await resolveStallFileUrlForClient(proofUrl)),
     status: row.status,
     adminNotes: row.admin_notes?.trim() || null,
     updatedAt: stallUpdatedAtToIso(row.updated_at),

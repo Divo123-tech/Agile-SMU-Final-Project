@@ -1,6 +1,7 @@
 import { pool } from "../db";
 import { NotFoundError, ServiceError } from "../errors";
 import { STALL_SELECT_COLUMNS, stallUpdatedAtToIso } from "../lib/stall-row";
+import { buildStallMediaClientUrl } from "../lib/stall-media-urls";
 import {
   resolveImageUrlForClient,
   resolveStallFileUrlForClient,
@@ -16,6 +17,7 @@ import type {
 
 async function stallRowToResponse(row: StallRow): Promise<StallResponse> {
   const imageUrl = row.image_url?.trim() ?? "";
+  const proofUrl = row.proof_of_ownership_url?.trim() ?? "";
 
   return {
     id: row.id,
@@ -23,14 +25,48 @@ async function stallRowToResponse(row: StallRow): Promise<StallResponse> {
     description: row.description?.trim() ?? "",
     owner: row.owner,
     address: row.address?.trim() ?? "",
-    image: await resolveImageUrlForClient(imageUrl),
-    proofOfOwnership: await resolveStallFileUrlForClient(
-      row.proof_of_ownership_url?.trim() ?? ""
-    ),
+    image:
+      (imageUrl ? buildStallMediaClientUrl(row.id, "image") : null) ??
+      (await resolveImageUrlForClient(imageUrl)),
+    proofOfOwnership:
+      (proofUrl ? buildStallMediaClientUrl(row.id, "proof") : null) ??
+      (await resolveStallFileUrlForClient(proofUrl)),
     status: row.status,
     adminNotes: row.admin_notes?.trim() || null,
     updatedAt: stallUpdatedAtToIso(row.updated_at),
   };
+}
+
+export async function getSignedStallMediaUrl(
+  stallId: number,
+  kind: "image" | "proof"
+): Promise<string> {
+  const { rows } = await pool.query<
+    Pick<StallRow, "image_url" | "proof_of_ownership_url">
+  >(
+    `SELECT image_url, proof_of_ownership_url
+     FROM stalls
+     WHERE id = $1
+     LIMIT 1`,
+    [stallId]
+  );
+
+  if (rows.length === 0) {
+    throw new NotFoundError(`Stall with id ${stallId} was not found`);
+  }
+
+  const stored =
+    kind === "image" ? rows[0].image_url : rows[0].proof_of_ownership_url;
+  const signed = await resolveStallFileUrlForClient(stored?.trim() ?? "");
+  if (!signed) {
+    throw new NotFoundError(
+      kind === "image"
+        ? `Stall with id ${stallId} has no photo`
+        : `Stall with id ${stallId} has no proof of ownership`
+    );
+  }
+
+  return signed;
 }
 
 export async function createStall(input: CreateStallInput): Promise<StallResponse> {

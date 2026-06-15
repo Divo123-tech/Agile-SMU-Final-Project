@@ -9,6 +9,7 @@ import {
   getStalls,
   getMyStalls,
   getStallById,
+  getSignedStallMediaUrl,
   updateStall,
 } from "../services/stall.service";
 import type { CreateStallInput } from "../types/stall";
@@ -234,6 +235,36 @@ export async function getStallByIdHandler(
     const stallId = parseStallIdParam(req.params.id as string | string[]);
     const stall = await getStallById(stallId);
     res.json(stall);
+  } catch (err) {
+    handleStallError(err, res, next);
+  }
+}
+
+/** Redirect to a fresh presigned S3 URL so stall photos open in a browser tab. */
+export async function redirectStallImageHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const stallId = parseStallIdParam(req.params.id as string | string[]);
+    const url = await getSignedStallMediaUrl(stallId, "image");
+    res.redirect(302, url);
+  } catch (err) {
+    handleStallError(err, res, next);
+  }
+}
+
+/** Redirect to a fresh presigned S3 URL so proof documents open in a browser tab. */
+export async function redirectStallProofHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const stallId = parseStallIdParam(req.params.id as string | string[]);
+    const url = await getSignedStallMediaUrl(stallId, "proof");
+    res.redirect(302, url);
   } catch (err) {
     handleStallError(err, res, next);
   }

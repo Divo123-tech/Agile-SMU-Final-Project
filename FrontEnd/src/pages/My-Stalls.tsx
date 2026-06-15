@@ -14,6 +14,7 @@ import { PageHeader } from "@/components/page-header"
 import {
   deleteStall,
   getMyStalls,
+  stallImageUrl,
   type MyStallsResponse,
   type Stall,
   type StallStatus,
@@ -93,7 +94,7 @@ function StallListItem({
         >
           {stall.image ? (
             <img
-              src={stall.image}
+              src={stallImageUrl(stall.id)}
               alt=""
               className="size-16 shrink-0 rounded-lg object-cover bg-muted"
             />
