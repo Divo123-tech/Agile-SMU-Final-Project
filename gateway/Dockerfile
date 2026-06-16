@@ -1,3 +1,4 @@
+# Build TypeScript API gateway
 FROM node:22-alpine AS build
 
 WORKDIR /app
@@ -9,11 +10,13 @@ COPY tsconfig.json ./
 COPY src ./src
 RUN npm run build
 
+# Production image
 FROM node:22-alpine AS production
 
 WORKDIR /app
 
 ENV NODE_ENV=production
+ENV PORT=5000
 
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
