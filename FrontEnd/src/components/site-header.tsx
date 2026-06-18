@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom"
 import { LogIn, UserPlus } from "lucide-react"
+import { APP_NAME } from "@/lib/app"
 import { useAuth } from "@/hooks/useAuth"
 import { UserMenu } from "@/components/user-menu"
 import { Button } from "@/components/ui/button"
@@ -15,7 +16,7 @@ export function SiteHeader() {
           to="/"
           className="font-serif text-lg font-medium text-foreground transition-colors hover:text-primary"
         >
-          Allergen Menu
+          {APP_NAME}
         </Link>
 
         {isLoggedIn ? (

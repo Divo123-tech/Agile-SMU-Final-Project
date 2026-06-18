@@ -3,6 +3,7 @@ import { Link } from "react-router-dom"
 import axios from "axios"
 import { Search, Store } from "lucide-react"
 import { SiteHeader } from "@/components/site-header"
+import { APP_NAME, APP_TAGLINE } from "@/lib/app"
 import { getStalls, stallImageUrl, type Stall } from "@/lib/api"
 import { useAuth } from "@/hooks/useAuth"
 import { Button } from "@/components/ui/button"
@@ -56,14 +57,14 @@ function Home() {
       <main className="mx-auto max-w-3xl px-4 py-10">
         <section className="rounded-2xl border border-border bg-card p-6 md:p-8">
           <p className="text-xs font-semibold tracking-wide text-primary uppercase">
-            Welcome
+            {APP_NAME}
           </p>
           <h1 className="mt-2 font-serif text-3xl font-semibold text-foreground md:text-4xl">
             Find allergy-aware stalls quickly
           </h1>
           <p className="mt-3 text-muted-foreground">
-            Search stalls by name, open menus instantly, and use allergy filters to hide
-            dishes you want to avoid.
+            {APP_TAGLINE} Search by stall name, open menus instantly, and use allergy
+            filters to hide dishes you want to avoid.
           </p>
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">

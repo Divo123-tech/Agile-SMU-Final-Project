@@ -4,6 +4,7 @@ import axios from "axios"
 import { toast } from "sonner"
 import { ArrowLeft, LogIn } from "lucide-react"
 import { ACCOUNTS_API_BASE_URL, type LoginResponse } from "@/lib/api"
+import { APP_NAME } from "@/lib/app"
 import { useAuth } from "@/hooks/useAuth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -72,7 +73,8 @@ export default function LoginPage() {
 
       <main className="max-w-lg mx-auto px-4 py-6">
         <p className="text-sm text-muted-foreground mb-6">
-          Welcome back. Sign in to manage your account, allergies, and stalls.
+          Welcome back to {APP_NAME}. Sign in to manage your account, allergies, and
+          stalls.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-5">

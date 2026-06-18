@@ -4,6 +4,7 @@ import axios from "axios"
 import { toast } from "sonner"
 import { ArrowLeft, Check, UserPlus } from "lucide-react"
 import { ACCOUNTS_API_BASE_URL } from "@/lib/api"
+import { APP_NAME } from "@/lib/app"
 import { getPasswordChecks, isPasswordStrong } from "@/lib/password"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -81,7 +82,8 @@ export default function CreateAccountPage() {
 
       <main className="max-w-lg mx-auto px-4 py-6">
         <p className="text-sm text-muted-foreground mb-6">
-          Create an account to save your allergies, manage stalls, and browse menus safely.
+          Join {APP_NAME} to save your allergies, manage stalls, and browse menus
+          safely.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-5">

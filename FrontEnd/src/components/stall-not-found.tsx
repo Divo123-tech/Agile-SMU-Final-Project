@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom"
 import { MapPinOff } from "lucide-react"
+import { APP_NAME } from "@/lib/app"
 import { Button } from "@/components/ui/button"
 
 interface StallNotFoundProps {
@@ -42,7 +43,7 @@ export function StallNotFound({ stallId, statusCode }: StallNotFoundProps) {
         </p>
 
         <Button asChild className="mt-8 w-full">
-          <Link to="/">Back to home</Link>
+          <Link to="/">Back to {APP_NAME}</Link>
         </Button>
       </div>
     </main>

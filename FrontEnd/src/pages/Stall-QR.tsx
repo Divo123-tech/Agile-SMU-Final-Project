@@ -4,6 +4,7 @@ import QRCode from "qrcode"
 import { Download } from "lucide-react"
 import { PageHeader } from "@/components/page-header"
 import { getStall } from "@/lib/api"
+import { APP_NAME } from "@/lib/app"
 import { Button } from "@/components/ui/button"
 
 function sanitizeFilename(name: string): string {
@@ -84,7 +85,7 @@ export default function StallQRPage() {
   }, [isValidStallId, stallId])
 
   const cardTitle = stallName ?? `Stall ${stallId}`
-  const cardSubtitle = "Scan to see this stall's allergen information"
+  const cardSubtitle = `Scan to view this stall's menu on ${APP_NAME}`
 
   useEffect(() => {
     if (!isValidStallId) return
