@@ -4,7 +4,7 @@ import QRCode from "qrcode"
 import { Download } from "lucide-react"
 import { PageHeader } from "@/components/page-header"
 import { getStall } from "@/lib/api"
-import { APP_NAME } from "@/lib/app"
+import { APP_NAME, getStallMenuPublicUrl } from "@/lib/app"
 import { Button } from "@/components/ui/button"
 
 function sanitizeFilename(name: string): string {
@@ -81,7 +81,7 @@ export default function StallQRPage() {
 
   const menuUrl = useMemo(() => {
     if (!isValidStallId) return ""
-    return `${window.location.origin}/stall/${stallId}`
+    return getStallMenuPublicUrl(stallId)
   }, [isValidStallId, stallId])
 
   const cardTitle = stallName ?? `Stall ${stallId}`
