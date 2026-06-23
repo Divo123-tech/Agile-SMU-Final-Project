@@ -18,6 +18,7 @@ function StallRoute() {
   const { id } = useParams()
   return <Stall key={id} />
 }
+//edit
 
 function AddDishRoute() {
   const [searchParams] = useSearchParams()
