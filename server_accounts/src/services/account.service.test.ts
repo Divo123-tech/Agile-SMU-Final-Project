@@ -46,6 +46,12 @@ describe("Account service", () => {
 
       await expect(getAccountById(99)).rejects.toThrow(NotFoundError);
     });
+
+    it("wraps database errors", async () => {
+      mockQuery.mockRejectedValue(new Error("db"));
+
+      await expect(getAccountById(1)).rejects.toThrow("Unable to load account");
+    });
   });
 
   describe("updateAccount", () => {
@@ -122,6 +128,75 @@ describe("Account service", () => {
       });
 
       expect(mockHash).toHaveBeenCalledWith("newSecurePassword1!", 10);
+    });
+
+    it("throws when email is already registered", async () => {
+      mockQuery
+        .mockResolvedValueOnce({ rows: [accountRow], rowCount: 1 } as never)
+        .mockResolvedValueOnce({ rows: [{ id: 2 }], rowCount: 1 } as never);
+      mockCompare.mockResolvedValue(true as never);
+
+      await expect(
+        updateAccount(1, {
+          currentPassword: "securePassword123",
+          email: "taken@example.com",
+        })
+      ).rejects.toThrow("email is already registered");
+    });
+
+    it("throws when nothing changed", async () => {
+      mockQuery.mockResolvedValueOnce({ rows: [accountRow], rowCount: 1 } as never);
+      mockCompare.mockResolvedValue(true as never);
+
+      await expect(
+        updateAccount(1, {
+          currentPassword: "securePassword123",
+          email: accountRow.email,
+        })
+      ).rejects.toThrow("No changes to save");
+    });
+
+    it("maps unique violation errors", async () => {
+      mockQuery
+        .mockResolvedValueOnce({ rows: [accountRow], rowCount: 1 } as never)
+        .mockResolvedValueOnce({ rows: [], rowCount: 0 } as never)
+        .mockRejectedValueOnce({ code: "23505" });
+
+      mockCompare.mockResolvedValue(true as never);
+
+      await expect(
+        updateAccount(1, {
+          currentPassword: "securePassword123",
+          email: "new@example.com",
+        })
+      ).rejects.toThrow("email is already registered");
+    });
+
+    it("maps check violation errors", async () => {
+      mockQuery
+        .mockResolvedValueOnce({ rows: [accountRow], rowCount: 1 } as never)
+        .mockResolvedValueOnce({ rows: [], rowCount: 0 } as never)
+        .mockRejectedValueOnce({ code: "23514" });
+
+      mockCompare.mockResolvedValue(true as never);
+
+      await expect(
+        updateAccount(1, {
+          currentPassword: "securePassword123",
+          email: "new@example.com",
+        })
+      ).rejects.toThrow("email does not meet database requirements");
+    });
+
+    it("wraps unexpected database errors", async () => {
+      mockQuery.mockRejectedValue(new Error("db"));
+
+      await expect(
+        updateAccount(1, {
+          currentPassword: "securePassword123",
+          email: "new@example.com",
+        })
+      ).rejects.toThrow("Unable to update account");
     });
   });
 });

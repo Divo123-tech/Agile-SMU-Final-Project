@@ -296,7 +296,7 @@ export default function MyStallsPage() {
       <main className="max-w-lg mx-auto px-4 py-6">
         {loading ? (
           <p className="text-sm text-muted-foreground text-center py-12">
-            Loading your stalls…
+            Loading your stalls… 
           </p>
         ) : error ? (
           <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
@@ -317,6 +317,7 @@ export default function MyStallsPage() {
             <p className="text-sm text-muted-foreground">
               {data?.count} stall{data && data.count !== 1 ? "s" : ""}
             </p>
+            <p>This is a testing paragraph</p>
             <ul className="space-y-3">
               {data?.stalls.map((stall) => (
                 <StallListItem

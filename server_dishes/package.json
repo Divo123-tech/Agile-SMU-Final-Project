@@ -8,8 +8,8 @@
     "start": "node dist/index.js",
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "test": "vitest run --coverage",
+    "test:watch": "vitest --coverage"
   },
   "keywords": [],
   "author": "",
@@ -27,6 +27,7 @@
     "@types/node": "^25.7.0",
     "@types/pg": "^8.20.0",
     "@types/supertest": "^7.2.0",
+    "@vitest/coverage-v8": "^4.1.9",
     "supertest": "^7.2.2",
     "tsx": "^4.22.0",
     "typescript": "^6.0.3",

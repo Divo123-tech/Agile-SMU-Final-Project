@@ -16,6 +16,7 @@ vi.mock("../services/stall.service", () => ({
   getStallById: vi.fn(),
   updateStall: vi.fn(),
   deleteStall: vi.fn(),
+  getSignedStallMediaUrl: vi.fn(),
 }));
 
 vi.mock("../services/stall-menu.service", () => ({
@@ -39,6 +40,7 @@ const mockGetMyStalls = vi.mocked(stallService.getMyStalls);
 const mockGetStallById = vi.mocked(stallService.getStallById);
 const mockUpdateStall = vi.mocked(stallService.updateStall);
 const mockDeleteStall = vi.mocked(stallService.deleteStall);
+const mockGetSignedStallMediaUrl = vi.mocked(stallService.getSignedStallMediaUrl);
 const mockGetStallMenu = vi.mocked(stallMenuService.getStallMenu);
 
 describe("Stall API", () => {
@@ -112,6 +114,46 @@ describe("Stall API", () => {
         error: "Unable to create stall. Please try again later.",
       });
     });
+
+    it("returns 500 when photo is not an image", async () => {
+      const res = await request(app)
+        .post("/stalls")
+        .field("name", createStallBody.name)
+        .field("description", createStallBody.description)
+        .field("address", createStallBody.address)
+        .field("owner", String(createStallBody.owner))
+        .attach("photo", Buffer.from("not-image"), {
+          filename: "stall.txt",
+          contentType: "text/plain",
+        })
+        .attach("proofOfOwnership", Buffer.from("fake-pdf"), {
+          filename: "proof.pdf",
+          contentType: "application/pdf",
+        });
+
+      expect(res.status).toBe(500);
+      expect(mockCreateStall).not.toHaveBeenCalled();
+    });
+
+    it("returns 500 when proof is not an image or PDF", async () => {
+      const res = await request(app)
+        .post("/stalls")
+        .field("name", createStallBody.name)
+        .field("description", createStallBody.description)
+        .field("address", createStallBody.address)
+        .field("owner", String(createStallBody.owner))
+        .attach("photo", Buffer.from("fake-image"), {
+          filename: "stall.jpg",
+          contentType: "image/jpeg",
+        })
+        .attach("proofOfOwnership", Buffer.from("bad"), {
+          filename: "proof.txt",
+          contentType: "text/plain",
+        });
+
+      expect(res.status).toBe(500);
+      expect(mockCreateStall).not.toHaveBeenCalled();
+    });
   });
 
   describe("GET /stall/:id", () => {
@@ -149,6 +191,30 @@ describe("Stall API", () => {
     });
   });
 
+  describe("GET /stalls/:id/image", () => {
+    it("redirects to signed image URL", async () => {
+      mockGetSignedStallMediaUrl.mockResolvedValue("https://signed.example.com/photo.jpg");
+
+      const res = await request(app).get("/stalls/1/image");
+
+      expect(res.status).toBe(302);
+      expect(res.headers.location).toBe("https://signed.example.com/photo.jpg");
+      expect(mockGetSignedStallMediaUrl).toHaveBeenCalledWith(1, "image");
+    });
+  });
+
+  describe("GET /stalls/:id/proof-of-ownership", () => {
+    it("redirects to signed proof URL", async () => {
+      mockGetSignedStallMediaUrl.mockResolvedValue("https://signed.example.com/proof.pdf");
+
+      const res = await request(app).get("/stalls/1/proof-of-ownership");
+
+      expect(res.status).toBe(302);
+      expect(res.headers.location).toBe("https://signed.example.com/proof.pdf");
+      expect(mockGetSignedStallMediaUrl).toHaveBeenCalledWith(1, "proof");
+    });
+  });
+
   describe("PUT /stalls/:id", () => {
     it("returns 200 and the updated stall", async () => {
       mockUpdateStall.mockResolvedValue(stallResponse);
@@ -162,6 +228,21 @@ describe("Stall API", () => {
       expect(res.status).toBe(200);
       expect(res.body).toEqual(stallResponse);
       expect(mockUpdateStall).toHaveBeenCalled();
+    });
+
+    it("returns 500 when photo is not an image", async () => {
+      const res = await request(app)
+        .put("/stalls/1")
+        .field("name", updateStallBody.name)
+        .field("description", updateStallBody.description)
+        .field("address", updateStallBody.address)
+        .attach("photo", Buffer.from("bad"), {
+          filename: "bad.txt",
+          contentType: "text/plain",
+        });
+
+      expect(res.status).toBe(500);
+      expect(mockUpdateStall).not.toHaveBeenCalled();
     });
   });
 

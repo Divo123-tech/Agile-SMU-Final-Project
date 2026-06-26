@@ -113,6 +113,21 @@ describe("getStallMenu", () => {
     ]);
   });
 
+  it("groups multiple dishes in the same category", async () => {
+    mockQueries(
+      [sampleStallRow],
+      [
+        padThaiRow,
+        { ...padThaiRow, dish_id: 4, dish_name: "Pad See Ew" },
+      ]
+    );
+
+    const result = await getStallMenu(101);
+
+    const mains = result.categories.find((c) => c.category === "Main Course");
+    expect(mains?.dishes).toHaveLength(2);
+  });
+
   it("throws NotFoundError when the stall row is missing", async () => {
     mockQueries([], [padThaiRow]);
 

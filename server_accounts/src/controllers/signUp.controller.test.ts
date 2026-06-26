@@ -64,5 +64,14 @@ describe("Sign-up controller", () => {
 
       expect(res.status).toHaveBeenCalledWith(503);
     });
+
+    it("forwards unknown errors", async () => {
+      const err = new Error("boom");
+      mockSignUp.mockRejectedValue(err);
+
+      await signUpHandler(createMockReq({ body: signUpBody }), res, next);
+
+      expect(next).toHaveBeenCalledWith(err);
+    });
   });
 });

@@ -12,8 +12,11 @@ import {
   createStallHandler,
   deleteStallHandler,
   getMyStallsHandler,
+  getStallsHandler,
   getStallByIdHandler,
   getStallMenuHandler,
+  redirectStallImageHandler,
+  redirectStallProofHandler,
   updateStallHandler,
 } from "./stall.controller";
 import * as stallMenuService from "../services/stall-menu.service";
@@ -25,9 +28,11 @@ import { updateStallBody } from "../test/fixtures/stall";
 vi.mock("../services/stall.service", () => ({
   createStall: vi.fn(),
   getMyStalls: vi.fn(),
+  getStalls: vi.fn(),
   getStallById: vi.fn(),
   updateStall: vi.fn(),
   deleteStall: vi.fn(),
+  getSignedStallMediaUrl: vi.fn(),
 }));
 
 vi.mock("../services/stall-menu.service", () => ({
@@ -44,11 +49,17 @@ vi.mock("../lib/s3", () => ({
   ),
 }));
 
+vi.mock("../lib/admin-realtime", () => ({
+  notifyPendingStallCreated: vi.fn(),
+}));
+
 const mockCreateStall = vi.mocked(stallService.createStall);
 const mockGetMyStalls = vi.mocked(stallService.getMyStalls);
+const mockGetStalls = vi.mocked(stallService.getStalls);
 const mockGetStallById = vi.mocked(stallService.getStallById);
 const mockUpdateStall = vi.mocked(stallService.updateStall);
 const mockDeleteStall = vi.mocked(stallService.deleteStall);
+const mockGetSignedStallMediaUrl = vi.mocked(stallService.getSignedStallMediaUrl);
 const mockGetStallMenu = vi.mocked(stallMenuService.getStallMenu);
 const mockUploadStallFileToS3 = vi.mocked(s3.uploadStallFileToS3);
 
@@ -113,6 +124,36 @@ describe("Stall controller — create", () => {
     expect(res.json).toHaveBeenCalledWith({ error: "photo is required" });
   });
 
+  it("returns 400 when proof is missing", async () => {
+    await createStallHandler(
+      createMockReq({
+        body: createStallBody,
+        files: { photo: [mockPhotoFile] },
+      }),
+      res,
+      next
+    );
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: "proofOfOwnership is required" });
+  });
+
+  it("returns 400 for invalid owner", async () => {
+    await createStallHandler(
+      createMockReq({
+        body: { ...createStallBody, owner: "abc" },
+        files: { photo: [mockPhotoFile], proofOfOwnership: [mockProofFile] },
+      }),
+      res,
+      next
+    );
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      error: "owner must be a positive integer",
+    });
+  });
+
   it("returns 503 when the service fails", async () => {
     mockCreateStall.mockRejectedValue(
       new ServiceError("Unable to create stall. Please try again later.")
@@ -126,6 +167,35 @@ describe("Stall controller — create", () => {
       res,
       next
     );
+
+    expect(res.status).toHaveBeenCalledWith(503);
+  });
+});
+
+describe("Stall controller — list stalls", () => {
+  const res = createMockRes();
+  let next: ReturnType<typeof createMockNext>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    next = createMockNext();
+  });
+
+  it("returns approved stalls", async () => {
+    const list = { count: 1, stalls: [stallResponse] };
+    mockGetStalls.mockResolvedValue(list as never);
+
+    await getStallsHandler(createMockReq(), res, next);
+
+    expect(res.json).toHaveBeenCalledWith(list);
+  });
+
+  it("returns 503 when listing fails", async () => {
+    mockGetStalls.mockRejectedValue(
+      new ServiceError("Unable to load stalls. Please try again later.")
+    );
+
+    await getStallsHandler(createMockReq(), res, next);
 
     expect(res.status).toHaveBeenCalledWith(503);
   });
@@ -264,6 +334,36 @@ describe("Stall controller — update", () => {
     expect(mockUploadStallFileToS3).toHaveBeenCalledTimes(2);
     expect(mockUpdateStall).toHaveBeenCalled();
   });
+
+  it("returns 400 for invalid body", async () => {
+    await updateStallHandler(
+      createMockReq({
+        params: { id: "1" },
+        body: {},
+        files: {},
+      }),
+      res,
+      next
+    );
+
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+
+  it("returns 404 when stall is missing", async () => {
+    mockUpdateStall.mockRejectedValue(new NotFoundError("Stall with id 1 was not found"));
+
+    await updateStallHandler(
+      createMockReq({
+        params: { id: "1" },
+        body: updateStallBody,
+        files: {},
+      }),
+      res,
+      next
+    );
+
+    expect(res.status).toHaveBeenCalledWith(404);
+  });
 });
 
 describe("Stall controller — get menu", () => {
@@ -317,6 +417,20 @@ describe("Stall controller — get menu", () => {
       categories: [],
     });
   });
+
+  it("returns 503 when menu loading fails", async () => {
+    mockGetStallMenu.mockRejectedValue(
+      new ServiceError("Unable to load stall menu. Please try again later.")
+    );
+
+    await getStallMenuHandler(
+      createMockReq({ params: { id: "101" } }),
+      res,
+      next
+    );
+
+    expect(res.status).toHaveBeenCalledWith(503);
+  });
 });
 
 describe("Stall controller — delete", () => {
@@ -339,5 +453,69 @@ describe("Stall controller — delete", () => {
 
     expect(mockDeleteStall).toHaveBeenCalledWith(1);
     expect(res.json).toHaveBeenCalledWith(stallResponse);
+  });
+
+  it("returns 404 when stall is missing", async () => {
+    mockDeleteStall.mockRejectedValue(new NotFoundError("Stall with id 9 was not found"));
+
+    await deleteStallHandler(
+      createMockReq({ params: { id: "9" } }),
+      res,
+      next
+    );
+
+    expect(res.status).toHaveBeenCalledWith(404);
+  });
+});
+
+
+describe("Stall controller — media redirects", () => {
+  const res = createMockRes();
+  let next: ReturnType<typeof createMockNext>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    next = createMockNext();
+    res.redirect = vi.fn();
+  });
+
+  it("redirects to signed image URL", async () => {
+    mockGetSignedStallMediaUrl.mockResolvedValue("https://signed.example.com/photo.jpg");
+
+    await redirectStallImageHandler(
+      createMockReq({ params: { id: "1" } }),
+      res,
+      next
+    );
+
+    expect(mockGetSignedStallMediaUrl).toHaveBeenCalledWith(1, "image");
+    expect(res.redirect).toHaveBeenCalledWith(302, "https://signed.example.com/photo.jpg");
+  });
+
+  it("redirects to signed proof URL", async () => {
+    mockGetSignedStallMediaUrl.mockResolvedValue("https://signed.example.com/proof.pdf");
+
+    await redirectStallProofHandler(
+      createMockReq({ params: { id: "2" } }),
+      res,
+      next
+    );
+
+    expect(mockGetSignedStallMediaUrl).toHaveBeenCalledWith(2, "proof");
+    expect(res.redirect).toHaveBeenCalledWith(302, "https://signed.example.com/proof.pdf");
+  });
+
+  it("returns 404 when media is missing", async () => {
+    mockGetSignedStallMediaUrl.mockRejectedValue(
+      new NotFoundError("Stall with id 1 has no photo")
+    );
+
+    await redirectStallImageHandler(
+      createMockReq({ params: { id: "1" } }),
+      res,
+      next
+    );
+
+    expect(res.status).toHaveBeenCalledWith(404);
   });
 });
